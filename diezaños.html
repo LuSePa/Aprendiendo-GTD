@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diez años de "Aprendiendo GTD"</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #f9fafb; /* gray-50 */
+            --color-text-primary: #1f2937; /* gray-800 */
+            --color-text-secondary: #4b5563; /* gray-600 */
+            --color-primary: #3b82f6; /* blue-500 */
+            --color-primary-dark: #2563eb; /* blue-600 */
+            --color-accent: #f97316; /* orange-500 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+        }
+        
+        .tab-active {
+            border-bottom-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+        .tab-inactive {
+            border-bottom-color: transparent;
+            color: var(--color-text-secondary);
+        }
+        
+        .sub-tab-active {
+            border-bottom: 2px solid var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+        .sub-tab-inactive {
+            border-bottom: 2px solid transparent;
+            color: var(--color-text-secondary);
+        }
+
+        .sub-tab-button.active {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .sub-tab-button {
+            background-color: var(--color-primary-dark);
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .sub-tab-button:hover {
+             background-color: var(--color-primary);
+        }
+
+        .chart-container-dynamic {
+            position: relative;
+            height: 60vh;
+            width: 100%;
+        }
+        
+        .adventure-option {
+            transition: all 0.2s ease-in-out;
+        }
+        .adventure-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border-color: var(--color-primary);
+        }
+
+        /* Keyframes for fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in-element {
+            animation: fadeIn 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold" style="color: var(--color-text-primary);">Diez años de "Aprendiendo GTD"</h1>
+            <p class="mt-2 text-lg" style="color: var(--color-text-secondary);">Un Análisis de la Comunidad</p>
+        </header>
+
+        <div class="border-b mb-8" style="border-color: #e5e7eb;">
+            <nav class="-mb-px flex justify-around" aria-label="Tabs">
+                <button id="tab-1-btn" class="tab-btn tab-active flex-1 whitespace-nowrap text-center py-4 px-1 border-b-2 font-medium text-sm">El Mapa del Podcast</button>
+                <button id="tab-2-btn" class="tab-btn tab-inactive flex-1 whitespace-nowrap text-center py-4 px-1 border-b-2 font-medium text-sm">La comunidad de Telegram</button>
+                <button id="tab-3-btn" class="tab-btn tab-inactive flex-1 whitespace-nowrap text-center py-4 px-1 border-b-2 font-medium text-sm">El Refugio del Blog</button>
+                <button id="tab-4-btn" class="tab-btn tab-inactive flex-1 whitespace-nowrap text-center py-4 px-1 border-b-2 font-medium text-sm">Aventura GTD</button>
+            </nav>
+        </div>
+
+        <main>
+            <!-- Pestaña 1: El Mapa del Podcast -->
+            <div id="tab-1-content" class="tab-content">
+                 <p class="mb-6 text-center max-w-3xl mx-auto" style="color: var(--color-text-secondary);">Esta sección ofrece una radiografía visual del contenido del podcast. A través de gráficos interactivos y una base de datos completa, se puede explorar la evolución de los temas tratados a lo largo de 170 episodios y una década de historia.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--color-text-primary);">Análisis Visual del Podcast (2016-2025)</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-gray-50 p-4 rounded-lg"><h3 class="text-lg font-semibold mb-2 text-center">Evolución de Temas por Año</h3><div class="relative h-96 w-full"><canvas id="evolutionChart"></canvas></div></div>
+                        <div class="bg-gray-50 p-4 rounded-lg"><h3 class="text-lg font-semibold mb-2 text-center">Distribución Total de Contenido</h3><div class="relative h-96 w-full"><canvas id="distributionChart"></canvas></div></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-center">Explorador de Episodios</h3>
+                        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                            <input type="text" id="searchInput" placeholder="Buscar por título..." class="w-full sm:w-1/2 p-2 border border-gray-300 rounded-md">
+                            <select id="categoryFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-md"><option value="">Todas las categorías</option></select>
+                            <select id="yearFilter" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-md"><option value="">Todos los años</option></select>
+                        </div>
+                        <div class="overflow-x-auto"><table class="min-w-full bg-white border border-gray-200"><thead class="bg-gray-100"><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N.º</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Año</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th></tr></thead><tbody id="episodesTableBody" class="divide-y divide-gray-200"></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pestaña 2: La comunidad de Telegram -->
+            <div id="tab-2-content" class="tab-content hidden">
+                <p class="mb-6 text-center max-w-3xl mx-auto" style="color: var(--color-text-secondary);">Aquí nos sumergimos en el corazón del proyecto: su comunidad. Esta sección analiza una década de conversaciones para identificar los problemas cualitativos más profundos y persistentes que enfrentan los usuarios en su día a día.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-center mb-6 border-b border-gray-200">
+                        <nav class="flex space-x-2" aria-label="Sub-tabs">
+                            <button id="sub-tab-1-btn" class="sub-tab-btn sub-tab-active py-2 px-4 font-medium text-sm rounded-t-lg">Revisando diez años</button>
+                            <button id="sub-tab-2-btn" class="sub-tab-btn sub-tab-inactive py-2 px-4 font-medium text-sm rounded-t-lg">Análisis del Dolor</button>
+                        </nav>
+                    </div>
+                    
+                    <div id="sub-tab-1-content" class="fade-in-element">
+                        <div class="flex">
+                            <button class="sub-tab-button active flex-grow p-4 text-sm md:text-base" onclick="openDynamicTab(event, 'Temas')">📖 Temas Más Tratados</button>
+                            <button class="sub-tab-button flex-grow p-4 text-sm md:text-base" onclick="openDynamicTab(event, 'Dudas')">❓ Dudas Más Frecuentes</button>
+                            <button class="sub-tab-button flex-grow p-4 text-sm md:text-base" onclick="openDynamicTab(event, 'Herramientas')">🛠️ Herramientas Más Mencionadas</button>
+                        </div>
+
+                        <div id="Temas" class="dynamic-tab-content p-4">
+                            <h2 id="Temas-title" class="text-xl font-bold text-center my-4" style="color: var(--color-text-primary);">Top 10 Temas por Año</h2>
+                            <div class="flex flex-wrap justify-center items-center gap-4 mb-4">
+                                <button class="px-4 py-2 rounded border bg-white" onclick="changeYear(-1, 'Temas')">&lt; Año Anterior</button>
+                                <span id="Temas-year" class="text-xl font-bold" style="color: var(--color-text-primary);">2016</span>
+                                <button class="px-4 py-2 rounded border bg-white" onclick="changeYear(1, 'Temas')">Año Siguiente &gt;</button>
+                                <button id="Temas-play" class="px-4 py-2 rounded border bg-white" onclick="toggleAutoplay('Temas')">Animación Evolución</button>
+                            </div>
+                            <div class="chart-container-dynamic"><canvas id="Temas-chart"></canvas></div>
+                        </div>
+
+                        <div id="Dudas" class="dynamic-tab-content hidden p-4">
+                            <h2 id="Dudas-title" class="text-xl font-bold text-center my-4" style="color: var(--color-text-primary);">Top 10 Dudas por Año</h2>
+                             <div class="flex flex-wrap justify-center items-center gap-4 mb-4">
+                                <button class="px-4 py-2 rounded border bg-white" onclick="changeYear(-1, 'Dudas')">&lt; Año Anterior</button>
+                                <span id="Dudas-year" class="text-xl font-bold" style="color: var(--color-text-primary);">2016</span>
+                                <button class="px-4 py-2 rounded border bg-white" onclick="changeYear(1, 'Dudas')">Año Siguiente &gt;</button>
+                                <button id="Dudas-play" class="px-4 py-2 rounded border bg-white" onclick="toggleAutoplay('Dudas')">Animación Evolución</button>
+                            </div>
+                            <div class="chart-container-dynamic"><canvas id="Dudas-chart"></canvas></div>
+                        </div>
+
+                        <div id="Herramientas" class="dynamic-tab-content hidden p-4">
+                            <h2 id="Herramientas-title" class="text-xl font-bold text-center my-4" style="color: var(--color-text-primary);">Top 10 Herramientas por Año</h2>
+                             <div class="flex flex-wrap justify-center items-center gap-4 mb-4">
+                                <button class="px-4 py-2 rounded border bg-white" onclick="changeYear(-1, 'Herramientas')">&lt; Año Anterior</button>
+                                <span id="Herramientas-year" class="text-xl font-bold" style="color: var(--color-text-primary);">2016</span>
+                                <button class="px-4 py-2 rounded border bg-white" onclick="changeYear(1, 'Herramientas')">Año Siguiente &gt;</button>
+                                <button id="Herramientas-play" class="px-4 py-2 rounded border bg-white" onclick="toggleAutoplay('Herramientas')">Animación Evolución</button>
+                            </div>
+                            <div class="chart-container-dynamic"><canvas id="Herramientas-chart"></canvas></div>
+                        </div>
+
+                        <div id="yearly-summary-container" class="mt-6 p-4 rounded-lg text-center bg-blue-50 border border-blue-200">
+                            <!-- Yearly summary will be injected here -->
+                        </div>
+                    </div>
+
+                    <div id="sub-tab-2-content" class="fade-in-element hidden">
+                        <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--color-text-primary);">Los 5 Puntos de Dolor Persistentes</h2>
+                        <div class="space-y-4" id="accordion-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pestaña 3: El Refugio del Blog -->
+            <div id="tab-3-content" class="tab-content hidden">
+                <p class="mb-6 text-center max-w-3xl mx-auto" style="color: var(--color-text-secondary);">Esta sección se enfoca en el rol único que ha desempeñado el blog. A diferencia del podcast y la comunidad, el blog ha sido el espacio para el contenido más estructurado, profundo y con mayor vocación de permanencia.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-2 text-center" style="color: var(--color-text-primary);">El Rol del Blog: Profunidad y Permanencia</h2>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg my-6">
+                        <h3 class="text-xl font-semibold text-blue-800">La Época Dorada (2020-2021)</h3>
+                        <p class="mt-2 text-blue-700">El período de mayor actividad del blog se centró en series temáticas profundas, estableciendo un pilar de contenido de alto valor que sigue siendo relevante hoy.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-gray-50 p-4 rounded-lg border"><b>1. Fundamentos GTD</b><p class="text-sm text-gray-600 mt-1">Desglose de los principios esenciales de Getting Things Done.</p></div>
+                        <div class="bg-gray-50 p-4 rounded-lg border"><b>2. Ecosistemas de Herramientas</b><p class="text-sm text-gray-600 mt-1">Guías detalladas para implementar GTD en plataformas específicas.</p></div>
+                        <div class="bg-gray-50 p-4 rounded-lg border"><b>3. Análisis de "Esencialismo"</b><p class="text-sm text-gray-600 mt-1">Una serie extensa sobre la filosofía del "menos pero mejor".</p></div>
+                        <div class="bg-gray-50 p-4 rounded-lg border"><b>4. Creación de Hábitos</b><p class="text-sm text-gray-600 mt-1">Exploración teórica para construir sistemas de hábitos efectivos.</p></div>
+                        <div class="bg-gray-50 p-4 rounded-lg border"><b>5. Niveles de Perspectiva</b><p class="text-sm text-gray-600 mt-1">Análisis de los niveles estratégicos de GTD, del propósito a la acción.</p></div>
+                        <div class="bg-gray-50 p-4 rounded-lg border"><b>6. Gestión de Proyectos</b><p class="text-sm text-gray-600 mt-1">Técnicas prácticas como la Planificación Natural de Proyectos.</p></div>
+                    </div>
+                     <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg mt-8">
+                        <h3 class="text-xl font-semibold text-green-800">El Potencial a Futuro</h3>
+                        <p class="mt-2 text-green-700">El blog representa una oportunidad estratégica como <b>archivo y repositorio de conocimiento</b>. Podría ser el hogar permanente para las transcripciones del podcast, guías detalladas que complementen los episodios, o análisis escritos profundos que requieren una lectura más pausada que una escucha activa.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pestaña 4: Aventura GTD -->
+            <div id="tab-4-content" class="tab-content hidden">
+                 <p class="mb-6 text-center max-w-3xl mx-auto" style="color: var(--color-text-secondary);">Os invito a un viaje a través de los desafíos diarios de GTD, donde cada decisión cuenta y refleja los aprendizajes de la comunidad.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                     <h2 class="text-2xl font-bold mb-2 text-center" style="color: var(--color-text-primary);">Un Día con GTD: Elige tu Propia Aventura</h2>
+                    <div id="adventure-container" class="max-w-3xl mx-auto mt-8">
+                        <!-- El juego se renderizará aquí -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center mt-12 py-4 border-t border-gray-200">
+            <p class="text-sm" style="color: var(--color-text-secondary);">Contenido elaborado por Lucía Serrano con la asistencia de IA (Canva de Gemini)</p>
+            <p class="text-sm" style="color: var(--color-text-secondary);">&copy; 2025</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+        const episodesData = [ { no: 1, year: 2016, title: "Presentación", category: "Comunidad y Casos Reales" }, { no: 2, year: 2016, title: "Qué es el GTD", category: "Fundamentos GTD" }, { no: 3, year: 2016, title: "Entrevista a Javier Cristóbal", category: "Comunidad y Casos Reales" }, { no: 4, year: 2016, title: "Los cinco pasos del GTD", category: "Fundamentos GTD" }, { no: 5, year: 2016, title: "Recopilar información en GTD", category: "Fundamentos GTD" }, { no: 6, year: 2016, title: "Procesar tareas y proyectos en GTD", category: "Fundamentos GTD" }, { no: 7, year: 2016, title: "Cómo organizar tareas y proyectos en GTD", category: "Fundamentos GTD" }, { no: 8, year: 2016, title: "Evaluación de nuestro Sistema GTD", category: "Revisiones y Perspectiva" }, { no: 9, year: 2016, title: "Hacer las tareas en GTD", category: "Fundamentos GTD" }, { no: 10, year: 2016, title: "Preguntas y respuestas de productividad", category: "Comunidad y Casos Reales" }, { no: 11, year: 2017, title: "Técnicas de Productividad: Pomodoro y Mapas Mentales", category: "Hábitos y Productividad General" }, { no: 12, year: 2017, title: "Productividad con Workflow", category: "Herramientas" }, { no: 13, year: 2017, title: "Bullet Journal: un método analógico en la era digital", category: "Hábitos y Productividad General" }, { no: 14, year: 2017, title: "Regla de los Dos Minutos", category: "Gestión Práctica" }, { no: 15, year: 2017, title: "Mapas Mentales", category: "Hábitos y Productividad General" }, { no: 16, year: 2017, title: "Mejora tu productividad con la Matriz de Eisenhower", category: "Hábitos y Productividad General" }, { no: 17, year: 2017, title: "Cómo elegir una app de productividad", category: "Herramientas" }, { no: 18, year: 2017, title: "Interrupciones: Cómo gestionarlas de forma productiva", category: "Hábitos y Productividad General" }, { no: 19, year: 2017, title: "Los Contextos en GTD", category: "Fundamentos GTD" }, { no: 20, year: 2017, title: "Entornos Productivos en GTD", category: "Gestión Práctica" }, { no: 21, year: 2017, title: "10 Leyes de la Productividad", category: "Hábitos y Productividad General" }, { no: 22, year: 2017, title: "Productividad con Sergio Pantiga", category: "Comunidad y Casos Reales" }, { no: 23, year: 2017, title: "Gestión del correo electrónico", category: "Gestión Práctica" }, { no: 24, year: 2017, title: "Niveles de altitud en GTD (Horizontes de Enfoque)", category: "Revisiones y Perspectiva" }, { no: 25, year: 2017, title: "Preguntas y Respuestas de GTD", category: "Comunidad y Casos Reales" }, { no: 26, year: 2017, title: "Formación oficial sobre Getting Things Done con José Miguel Bolívar", category: "Comunidad y Casos Reales" }, { no: 27, year: 2017, title: "6 Apps para tu sistema de productividad", category: "Herramientas" }, { no: 28, year: 2017, title: "El Barrido Mental en GTD (Mind Sweep)", category: "Fundamentos GTD" }, { no: 29, year: 2017, title: "Novedades de Omnifocus 3", category: "Herramientas" }, { no: 30, year: 2018, title: "Reset Total de Manolo", category: "Comunidad y Casos Reales" }, { no: 31, year: 2018, title: "GTD y Time Blocking", category: "Hábitos y Productividad General" }, { no: 32, year: 2018, title: "Fallos más comunes al iniciarse en GTD", category: "Fundamentos GTD" }, { no: 33, year: 2018, title: "10 Preguntas sobre Omnifocus 3 para Mac", category: "Herramientas" }, { no: 34, year: 2018, title: "GTD no funciona", category: "Fundamentos GTD" }, { no: 35, year: 2018, title: "Reajustar tu sistema GTD después de un parón", category: "Revisiones y Perspectiva" }, { no: 36, year: 2018, title: "Aprendiendo GTD con OPTIMALAB", category: "Comunidad y Casos Reales" }, { no: 37, year: 2019, title: "Capturar en GTD 3 años después", category: "Fundamentos GTD" }, { no: 38, year: 2019, title: "Aclarar en GTD 3 años después", category: "Fundamentos GTD" }, { no: 39, year: 2019, title: "Organizar en GTD 3 años después", category: "Fundamentos GTD" }, { no: 40, year: 2019, title: "Aprendiendo GTD con Paz Garde", category: "Comunidad y Casos Reales" }, { no: 41, year: 2019, title: "Reflexionar en GTD 3 años después", category: "Revisiones y Perspectiva" }, { no: 42, year: 2019, title: "Ejecutar en GTD 3 años después", category: "Fundamentos GTD" }, { no: 43, year: 2019, title: "GTD en vacaciones", category: "Gestión Práctica" }, { no: 44, year: 2019, title: "GTD y el espacio de trabajo", category: "Gestión Práctica" }, { no: 45, year: 2019, title: "Aprendiendo GTD con David Sánchez", category: "Comunidad y Casos Reales" }, { no: 46, year: 2019, title: "#userstories con Pablo Paredes", category: "Comunidad y Casos Reales" }, { no: 47, year: 2019, title: "Gestión de tu sistema de archivo en GTD", category: "Gestión Práctica" }, { no: 48, year: 2020, title: "Efectividad con Jordi Fortuny", category: "Comunidad y Casos Reales" }, { no: 49, year: 2020, title: "Material de soporte a la acción y al proyecto", category: "Gestión Práctica" }, { no: 50, year: 2020, title: "La revisión anual", category: "Revisiones y Perspectiva" }, { no: 51, year: 2020, title: "El futuro de la efectividad con José Miguel Bolívar", category: "Comunidad y Casos Reales" }, { no: 52, year: 2020, title: "#userstories con Francisco de Paula Juárez Roldán", category: "Comunidad y Casos Reales" }, { no: 53, year: 2020, title: "Escribiendo un diario con Pablo Paredes", category: "Hábitos y Productividad General" }, { no: 54, year: 2020, title: "Planificación natural de proyectos con Paz Garde", category: "Fundamentos GTD" }, { no: 55, year: 2020, title: "Cómo integrar el correo electrónico con GTD", category: "Gestión Práctica" }, { no: 56, year: 2020, title: "Entornos VUCA y GTD", category: "Hábitos y Productividad General" }, { no: 57, year: 2020, title: "Errores comunes en GTD con David Sánchez", category: "Fundamentos GTD" }, { no: 58, year: 2020, title: "Errores comunes en GTD II con Jordi Fortuny", category: "Fundamentos GTD" }, { no: 59, year: 2020, title: "Prioridades y banderitas en listas de tareas vs GTD", category: "Fundamentos GTD" }, { no: 60, year: 2020, title: "Errores comunes en GTD III con Marta Bolívar", category: "Fundamentos GTD" }, { no: 61, year: 2020, title: "Las Agendas en GTD", category: "Gestión Práctica" }, { no: 62, year: 2020, title: "Manolo abandona Omnifocus", category: "Herramientas" }, { no: 63, year: 2020, title: "GTD y el trabajo colaborativo", category: "Gestión Práctica" }, { no: 64, year: 2020, title: "Reuniones efectivas", category: "Hábitos y Productividad General" }, { no: 65, year: 2020, title: "Dudas sobre proyectos en GTD", category: "Comunidad y Casos Reales" }, { no: 66, year: 2020, title: "El archivo de seguimiento en GTD", category: "Gestión Práctica" }, { no: 67, year: 2020, title: "Listas Algún día / Tal vez", category: "Gestión Práctica" }, { no: 68, year: 2020, title: "Libros sobre GTD. El orden Machete", category: "Hábitos y Productividad General" }, { no: 69, year: 2020, title: "Podcast de productividad", category: "Comunidad y Casos Reales" }, { no: 70, year: 2020, title: "Funcionamiento de los Mastermind groups", category: "Comunidad y Casos Reales" }, { no: 71, year: 2020, title: "¿Qué es Procrastinar? Un ejemplo (Día de los Santos Inocentes)", category: "Hábitos y Productividad General" }, { no: 72, year: 2021, title: "Cómo lo hacemos: Capturar", category: "Comunidad y Casos Reales" }, { no: 73, year: 2021, title: "Cómo lo hacemos: Aclarar", category: "Comunidad y Casos Reales" }, { no: 74, year: 2021, title: "Cómo lo hacemos: Organizar", category: "Comunidad y Casos Reales" }, { no: 75, year: 2021, title: "Cómo lo hacemos: Reflexionar", category: "Comunidad y Casos Reales" }, { no: 76, year: 2021, title: "Cómo lo hacemos: Ejecutar (Hacer)", category: "Comunidad y Casos Reales" }, { no: 77, year: 2021, title: "Cuantificando nuestros sistemas GTD", category: "Comunidad y Casos Reales" }, { no: 78, year: 2021, title: "Analizando nuestro diagrama de flujo de GTD", category: "Comunidad y Casos Reales" }, { no: 79, year: 2021, title: "Planificación Natural de Proyectos en GTD", category: "Fundamentos GTD" }, { no: 80, year: 2021, title: "Crear tu sistema GTD y consecuencias de su (buen) uso", category: "Fundamentos GTD" }, { no: 81, year: 2021, title: "Things vs Todoist vs Omnifocus", category: "Herramientas" }, { no: 82, year: 2021, title: "¿Qué le pedirías a tu gestor de listas ideal?", category: "Herramientas" }, { no: 83, year: 2021, title: "GTD en movilidad", category: "Gestión Práctica" }, { no: 84, year: 2021, title: "Control de las finanzas personales", category: "Hábitos y Productividad General" }, { no: 85, year: 2021, title: "Repasamos nuestras Apps de Productividad (Secundarias)", category: "Herramientas" }, { no: 86, year: 2021, title: "Tratamiento práctico de las fechas en GTD", category: "Gestión Práctica" }, { no: 87, year: 2021, title: "La separación entre lo profesional y lo personal en GTD", category: "Gestión Práctica" }, { no: 88, year: 2021, title: "YNAB, otra forma de entender las finanzas personales", category: "Hábitos y Productividad General" }, { no: 89, year: 2021, title: "¿Qué app usaríamos si no fuese Omnifocus?", category: "Herramientas" }, { no: 90, year: 2021, title: "Un día cualquiera en la vida de alguien que usa GTD", category: "Comunidad y Casos Reales" }, { no: 91, year: 2022, title: "Los checklist en GTD", category: "Gestión Práctica" }, { no: 92, year: 2022, title: "GTD en la obra de Tolkien", category: "Comunidad y Casos Reales" }, { no: 93, year: 2022, title: "Cómo se refleja nuestro trabajo en nuestro sistema GTD", category: "Gestión Práctica" }, { no: 94, year: 2022, title: "Nuestros dispositivos, aplicaciones y uso", category: "Herramientas" }, { no: 95, year: 2022, title: "Listas de Contextos con Francisco y Pablo", category: "Fundamentos GTD" }, { no: 96, year: 2022, title: "Por qué GTD no es para ti", category: "Fundamentos GTD" }, { no: 97, year: 2022, title: "Los 5 pasos de GTD, cuál te cuesta más y por qué", category: "Fundamentos GTD" }, { no: 98, year: 2022, title: "Lecciones de Liderazgo (Parte 1) - La saga de Shackleton", category: "Hábitos y Productividad General" }, { no: 99, year: 2022, title: "Lecciones de Liderazgo (Parte 2) - 10 Estrategias de liderazgo al límite", category: "Hábitos y Productividad General" }, { no: 100, year: 2022, title: "La historia de Aprendiendo GTD (Directo)", category: "Comunidad y Casos Reales" }, { no: 101, year: 2022, title: "Nuestros espacios de trabajo", category: "Gestión Práctica" }, { no: 102, year: 2022, title: "Presentaciones: Secretos de Steve Jobs", category: "Hábitos y Productividad General" }, { no: 103, year: 2022, title: "Dudas de GTD con Haritz García", category: "Comunidad y Casos Reales" }, { no: 104, year: 2022, title: "Taxonomía en nuestros sistemas", category: "Gestión Práctica" }, { no: 105, year: 2022, title: "Resumen temporada 2021-2022", category: "Comunidad y Casos Reales" }, { no: 106, year: 2022, title: "El espíritu creativo de Daniel Goleman, Paul Kaufman y Michael Ray", category: "Hábitos y Productividad General" }, { no: 107, year: 2022, title: "Entrevista a Luis Sánchez Blasco", category: "Comunidad y Casos Reales" }, { no: 108, year: 2022, title: "Cómo las aplicaciones condicionan cómo aplicamos GTD", category: "Herramientas" }, { no: 109, year: 2022, title: "Entrevista a Manolo Molero Anaya", category: "Comunidad y Casos Reales" }, { no: 110, year: 2022, title: "Dudas sobre contextos de Ángel Álvarez", category: "Fundamentos GTD" }, { no: 111, year: 2022, title: "Delegar con Francisco y Pablo", category: "Gestión Práctica" }, { no: 112, year: 2022, title: "Presentando ARC® con Sergio Pantiga", category: "Hábitos y Productividad General" }, { no: 113, year: 2022, title: "Integrar nuestro GTD con el trabajo en equipo", category: "Gestión Práctica" }, { no: 114, year: 2022, title: "Villancico Aprendiendo GTD", category: "Comunidad y Casos Reales" }, { no: 115, year: 2023, title: "¿Por qué se está abandonando GTD? con Joan Jané", category: "Comunidad y Casos Reales" }, { no: 116, year: 2023, title: "Procesos y automatizaciones en nuestros sistemas", category: "Gestión Práctica" }, { no: 117, year: 2023, title: "Minimalismo digital de Cal Newport (Primera parte)", category: "Hábitos y Productividad General" }, { no: 118, year: 2023, title: "Minimalismo digital de Cal Newport (Segunda parte)", category: "Hábitos y Productividad General" }, { no: 119, year: 2023, title: "Efectividad en familia", category: "Gestión Práctica" }, { no: 120, year: 2023, title: "Realmente ¿Aplicamos GTD?", category: "Fundamentos GTD" }, { no: 121, year: 2023, title: "Las 10 Reglas de Oro del Liderazgo (Primera parte)", category: "Hábitos y Productividad General" }, { no: 122, year: 2023, title: "Las 10 reglas de Oro del liderazgo (Segunda Parte)", category: "Hábitos y Productividad General" }, { no: 123, year: 2023, title: "ChatGTD | Qué puede aportar la Inteligencia Artificial para aplicar GTD", category: "Herramientas" }, { no: 124, year: 2023, title: "GTD con Google Apps", category: "Herramientas" }, { no: 125, year: 2023, title: "Gestión de bibliotecas digitales", category: "Gestión Práctica" }, { no: 126, year: 2023, title: "Cómo gestionamos las interrupciones", category: "Hábitos y Productividad General" }, { no: 127, year: 2023, title: "Resumen temporada 2022-2023", category: "Comunidad y Casos Reales" }, { no: 128, year: 2023, title: "Nunca comas solo de Keith Ferrazzi y Tahl Raz (Primera Parte)", category: "Hábitos y Productividad General" }, { no: 129, year: 2023, title: "Nunca comas solo de Keith Ferrazzi y Tahl Raz (Segunda Parte)", category: "Hábitos y Productividad General" }, { no: 130, year: 2023, title: "GTD en papel", category: "Herramientas" }, { no: 131, year: 2023, title: "Nómadas vs. Archiveros en el entorno digital", category: "Gestión Práctica" }, { no: 132, year: 2023, title: "El camino de Steve Jobs de Jay Elliot (Parte 1)", category: "Hábitos y Productividad General" }, { no: 133, year: 2023, title: "El camino de Steve Jobs de Jay Elliot (Parte 2)", category: "Hábitos y Productividad General" }, { no: 134, year: 2023, title: "Hábitos con Francisco y Pablo", category: "Hábitos y Productividad General" }, { no: 135, year: 2023, title: "Los Roles de Belbin", category: "Hábitos y Productividad General" }, { no: 136, year: 2024, title: "Mañanas milagrosas de Hal Elrod (Parte 1)", category: "Hábitos y Productividad General" }, { no: 137, year: 2024, title: "Mañanas milagrosas de Hal Elrod (Parte 2)", category: "Hábitos y Productividad General" }, { no: 138, year: 2024, title: "Método Cornell de toma de apuntes", category: "Hábitos y Productividad General" }, { no: 139, year: 2024, title: "La parte personal en nuestros sistemas", category: "Gestión Práctica" }, { no: 140, year: 2024, title: "Hábitos atómicos de James Clear (Parte 1)", category: "Hábitos y Productividad General" }, { no: 141, year: 2024, title: "Hábitos atómicos de James Clear (Parte 2)", category: "Hábitos y Productividad General" }, { no: 142, year: 2024, title: "Malos Hábitos con Francisco y Pablo", category: "Hábitos y Productividad General" }, { no: 143, year: 2024, title: "Proyecto Solidario con David Sánchez", category: "Comunidad y Casos Reales" }, { no: 144, year: 2024, title: "Incubar más y mejor en GTD", category: "Gestión Práctica" }, { no: 145, year: 2024, title: "Entrevista a Emilio Cano 'Emilcar'", category: "Comunidad y Casos Reales" }, { no: 146, year: 2024, title: "Entrevista a Kenso - Jeroen + Quique", category: "Comunidad y Casos Reales" }, { no: 147, year: 2024, title: "Contextos, listas y otros secretos de la productividad", category: "Fundamentos GTD" }, { no: 148, year: 2024, title: "Resumen temporada 2023-2024", category: "Comunidad y Casos Reales" }, { no: 149, year: 2024, title: "Las gaitas son para el verano", category: "Comunidad y Casos Reales" }, { no: 150, year: 2024, title: "Nuestro uso del GTD durante las vacaciones", category: "Gestión Práctica" }, { no: 151, year: 2024, title: "Proyectos complejos y otras dudas", category: "Comunidad y Casos Reales" }, { no: 152, year: 2024, title: "Revisión semanal, revisión infernal", category: "Revisiones y Perspectiva" }, { no: 153, year: 2024, title: "GTD en papel: La experiencia de Manolo", category: "Herramientas" }, { no: 154, year: 2024, title: "Las herramientas del trabajo en GTD", category: "Herramientas" }, { no: 155, year: 2024, title: "La lista de procesos", category: "Gestión Práctica" }, { no: 156, year: 2024, title: "Principales dificultades en el aprendizaje de GTD", category: "Fundamentos GTD" }, { no: 157, year: 2024, title: "La figura de Allen", category: "Comunidad y Casos Reales" }, { no: 158, year: 2024, title: "¿Dónde lo pongo?", category: "Gestión Práctica" }, { no: 159, year: 2025, title: "Empezar en GTD desde cero", category: "Fundamentos GTD" }, { no: 160, year: 2025, title: "Qué hacer cuando tu sistema se descontrola", category: "Gestión Práctica" }, { no: 161, year: 2025, title: "Destripando nuestros sistemas", category: "Comunidad y Casos Reales" }, { no: 162, year: 2025, title: "Del papel al móvil", category: "Herramientas" }, { no: 163, year: 2025, title: "Analizando Things 3", category: "Herramientas" }, { no: 164, year: 2025, title: "La Consultora. Como McKinsey dirige el mundo", category: "Hábitos y Productividad General" }, { no: 165, year: 2025, title: "GTD y los retos al incorporarse a una nueva empresa", category: "Gestión Práctica" }, { no: 166, year: 2025, title: "Sistema de gestión de listas de tareas extensas (Mark Forster)", category: "Hábitos y Productividad General" }, { no: 167, year: 2025, title: "Aclarando más y mejor", category: "Fundamentos GTD" }, { no: 168, year: 2025, title: "Aclarar el correo electrónico", category: "Gestión Práctica" }, { no: 169, year: 2025, title: "Proyectos vs Checklist en GTD", category: "Fundamentos GTD" }, { no: 170, year: 2025, title: "La IA aplicada a GTD", category: "Herramientas" },
+        ];
+        const painPointsData = [ { title: "1. Sobrecarga del Sistema", description: "La sensación de agobio y frustración al tener un sistema saturado de tareas, contextos desbordados y bandejas de entrada inmanejables.", content: { definition: "Es un problema recurrente y multifacético, caracterizado por una abundancia de información y tareas, dificultades en la organización y una constante interrupción que lleva a un ciclo de frustración, agobio y pérdida de control.", quotes: [ "Caí de la tabla, la mandé a tomar por saco, la mordió un tiburón, se encalló en una roca y a saber donde debe estar... así que hay que empezar de 0.", "Tras estar un mes de baja, tengo tal follón de tareas pendientes que me es imposible subir a la tabla.", "Se me acumulan un montón de cosas en la bandeja de entrada, en el mail y en los whatsapps y la verdad me jode muchísimo, la verdad que es desquiciante." ], causes: "Se atribuye a una mala captura y aclaración, falta de revisiones regulares, un exceso de compromisos y la dificultad para 'incubar' tareas o decir 'no'.", solutions: "Las soluciones sugeridas por la comunidad incluyen: 'incubar más' para reducir el ruido, realizar revisiones a fondo para recuperar el control, renegociar compromisos y aprender a decir 'no', y fragmentar contextos para hacerlos más manejables." } }, { title: "2. Confusión Conceptual", description: "La dificultad persistente para aplicar conceptos clave de GTD (Contextos, Proyectos, Acciones) en el entorno digital y de trabajo moderno.", content: { definition: "La confusión nace de la colisión entre conceptos diseñados para un mundo físico y la realidad del trabajo digital y remoto, lo que obliga a los usuarios a reinventar constantemente su aplicación. La fricción se agrava por el diseño de muchas apps que no respetan la 'ortodoxia' de GTD.", quotes: [ "Ahora no me queda clara la diferencia entre contexto y área.", "El problema de mis contextos es que no me los encuentro, sino que tengo que buscarlos yo (son personas), por lo que si tengo muchas tareas en portátil, se acumulan las tareas en los otros contextos.", "Tengo una duda... Cuando se me presenta un proyecto con una lista de próximas acciones... ¿Debo diferenciar las próximas acciones de las acciones? ¿Hago dos etiquetas diferentes para filtrar?" ], causes: "La obsolescencia de contextos tradicionales en el teletrabajo, la diferencia entre el 'proyecto' de GTD y el concepto tradicional, y la forma en que las apps anidan tareas son las principales fuentes de confusión.", solutions: "La comunidad debate constantemente sobre la redefinición de contextos (por energía, por herramienta específica), la importancia de no usar los proyectos como contenedores de tareas y la necesidad de centrarse en la siguiente acción física y visible." } }, { title: "3. La Paradoja de las Herramientas", description: "La búsqueda incesante de la 'herramienta perfecta', un debate que a menudo eclipsa la importancia de la propia metodología y genera frustración.", content: { definition: "Es una tensión constante entre la pureza del método (99% hábitos) y la realidad práctica de un mundo digital (necesidad de sincronización, baja fricción). La pregunta '¿cuál es la mejor app?' es una de las más recurrentes y polémicas.", quotes: [ "Es terrible cuando una app no te convence. Se pierde la confianza.", "Estoy pensando pasarme a omnifocus pero me da coraje perder la inversión que hice en esta aplicación para iOS y Mac. ¿Es cosa mía?", "Las empresas de desarrollo de estas apps (...) provocan que el usuario se desvíe fácilmente del método y se centren en lo accesorio." ], causes: "La necesidad de sincronización, la búsqueda de una interfaz con 'baja fricción' y las propias funcionalidades de las apps que invitan a 'sobre-organizar' son las causas principales.", solutions: "Los miembros más experimentados abogan por volver a lo básico (papel y lápiz para aprender), elegir una herramienta 'suficientemente buena' y centrarse en los hábitos, y recordar que ninguna app hará el trabajo por ti." } }, { title: "4. El Ruido Digital", description: "La dificultad para gestionar el tsunami de información y tareas que llegan desde múltiples canales de mensajería como WhatsApp, Telegram y el email.", content: { definition: "El problema se define por la tensión entre la proliferación de canales de comunicación y la disciplina necesaria para no tratarlos a todos como bandejas de entrada urgentes. El debate principal es si estas plataformas son 'fuentes de información' o 'inboxes'.", quotes: [ "El temor está en no querer dejar nada fuera del sistema, sin embargo, no podemos controlar todo, la mensajería está llena de banalidades.", "También capturo todo, y demás, lo malo es que ¡ya ya ya! que a veces me satura...", "Como los adolescentes no se les enseña adecuadamente a trabajar con sus STUFFS, los open loops les genera ansiedad, estrés y distracción." ], causes: "La inmediatez de la mensajería, la mezcla de comunicaciones personales y profesionales, y el miedo a perderse algo (FOMO) son las causas de este agobio.", solutions: "La estrategia principal de la comunidad es el 'triaje activo': sacar la información relevante de los silos de mensajería lo más rápido posible (reenviando a un bot, a un grupo personal, al email o a la app de GTD) para procesarla después en un entorno controlado." } }, { title: "5. El Bloqueo ante la Complejidad", description: "La parálisis o procrastinación que sienten los usuarios al enfrentarse a proyectos que perciben como enormes, abrumadores o poco definidos.", content: { definition: "No es simple procrastinación, sino una 'tormenta perfecta' de factores externos (sobrecarga, interrupciones) e internos (falta de claridad, miedo al fracaso, perfeccionismo) que ataca tanto a nivel de sistema como a nivel psicológico.", quotes: [ "El proyecto más grande que tengo ahora mismo (un proyecto arquitectónico industrial) tiene 18 subproyectos activos.", "Usuarios que se sienten perdidos ante la gran envergadura de proyectos como 'preparar oposiciones' y no saben 'cómo hacerlo para no perder el foco'.", "Cuando surgen 'temas que hay que corregir' en un blog, los usuarios los 'incuban' porque 'no quieren enfrentarse a ello'." ], causes: "Proyectos de gran envergadura (oposiciones), logísticamente complejos (organizar un evento) o recurrentes y tediosos (cierre contable) son los principales detonantes.", solutions: "La comunidad recurre a los fundamentos de GTD para superarlo: aplicar la 'Planificación Natural de Proyectos' para desenredar la complejidad, la obsesión por 'definir solo la siguiente acción' para generar movimiento, y el uso de 'mapas mentales' para visualizar el camino." } } ];
+        
+        // --- INICIO DE DATOS DE LA AVENTURA ---
+        const adventureData = {
+            "start": {
+                "text": "Elige tu aventura para comenzar:",
+                "options": [
+                    { "text": "El Email Urgente", "next": "email_start" },
+                    { "text": "El Arte de Esperar", "next": "waiting_for_start" },
+                    { "text": "El Proyecto Ambiguo", "next": "project_start" },
+                    { "text": "La Jungla de Contextos", "next": "context_start" },
+                    { "text": "La Revisión Semanal", "next": "review_start" },
+                    { "text": "La Búsqueda de la App Perfecta", "next": "tool_start" },
+                ]
+            },
+
+            // --- AVENTURA 1: EL EMAIL URGENTE (Modelo GTD Básico) ---
+            "email_start": { "text": "9:00 AM. Vibra el móvil: un email importante de un cliente. Parece urgente. ¿Qué haces?", "options": [ { "text": "Lo leo y respondo ahora mismo.", "next": "email_react" }, { "text": "Lo capturo en mi sistema para procesarlo después.", "next": "email_capture" } ] },
+            "email_react": { "text": "Has respondido inmediatamente al email.", "outcome": { "title": "Resultado: Reactividad", "message": "Respondes, pero te saca de tu flujo. Pierdes el control de tu atención y ahora eres esclavo de las notificaciones.", "moraleja": "Tu día no es el inbox de los demás. Captura y sigue a lo tuyo." } },
+            "email_capture": { "text": "<b>(Capturar)</b> Buena decisión. Abres tu app de captura y anotas: 'Revisar y responder email del cliente X'. Sientes alivio al sacarlo de tu cabeza. Más tarde, procesas tu bandeja de entrada. Ves la nota. ¿Qué te preguntas?", "options": [ { "text": "¿Qué es esto?", "next": "email_clarify_intro" }, { "text": "¿Es para hoy?", "next": "email_organize_wrong" } ] },
+            "email_organize_wrong": { "text": "Has intentado organizar sin aclarar.", "outcome": { "title": "Resultado: Falsa Organización", "message": "Organizar sin aclarar primero es un error común. Creas listas de tareas ambiguas que son difíciles de ejecutar, lo que lleva a la procrastinación.", "moraleja": "Ponerle una etiqueta bonita a una 'cosa' no la convierte en una acción. Aclarar primero, organizar después." } },
+            "email_clarify_intro": { "text": "<b>(Aclarar)</b> ¡Exacto! Te preguntas '¿Qué es?'. Luego: '¿Requiere acción?'. Sí. Ahora la pregunta clave: <b>¿Cuál es la siguiente acción física y visible?</b>", "options": [ { "text": "La siguiente acción es 'Responder email'.", "next": "email_clarify_wrong" }, { "text": "La siguiente acción es 'Leer detenidamente el email del cliente X para decidir los siguientes pasos'.", "next": "email_organize_intro" } ] },
+            "email_clarify_wrong": { "text": "Has definido la acción como 'Responder email'.", "outcome": { "title": "Resultado: Aclaración Incompleta", "message": "'Responder email' sigue siendo ambiguo. Podría requerir buscar un documento o consultar a un colega. No es una acción física y visible.", "moraleja": "Si tu 'siguiente acción' te hace pensar '¿y ahora qué?', es que no es una siguiente acción." } },
+            "email_organize_intro": { "text": "<b>(Organizar)</b> ¡Perfecto! 'Leer detenidamente el email...' es una acción clara. Te das cuenta de que te llevará menos de 2 minutos. ¿Qué haces?", "options": [ { "text": "La hago ahora mismo.", "next": "email_do_it" }, { "text": "La apunto en mi lista de 'Próximas Acciones' para más tarde.", "next": "email_defer_wrong" } ] },
+            "email_defer_wrong": { "text": "Has apuntado la tarea en tu lista.", "outcome": { "title": "Resultado: Oportunidad Perdida", "message": "La regla de los 2 minutos de GTD está diseñada para eliminar rápidamente estas pequeñas tareas y ganar inercia. Deferirla solo añade un elemento más a tus listas.", "moraleja": "Hacer en dos minutos lo que se tarda un minuto en apuntar... no parece muy productivo, ¿verdad?" } },
+            "email_do_it": { "text": "<b>(Ejecutar)</b> La haces inmediatamente. Lees el email y te das cuenta de que para responder necesitas preparar un pequeño informe, lo que requerirá varias acciones. ¿Qué has descubierto?", "options": [ { "text": "He descubierto un nuevo <b>Proyecto</b>: 'Preparar y enviar informe para cliente X'.", "next": "email_final_good" }, { "text": "He descubierto un montón de tareas nuevas que tengo que hacer ya.", "next": "email_final_bad" } ] },
+            "email_final_bad": { "text": "Has identificado varias tareas sueltas.", "outcome": { "title": "Resultado: Agobio por falta de perspectiva", "message": "Verlo como un montón de tareas te genera estrés. Al no agruparlas bajo un resultado deseado (un proyecto), pierdes la perspectiva y es más fácil que alguna se quede por el camino.", "moraleja": "Sin un 'proyecto' que les dé sentido, las acciones son como ovejas sin pastor: se dispersan y se pierden." } },
+            "email_final_good": { "text": "Has identificado un nuevo proyecto.", "outcome": { "title": "Resultado: ¡Mente como el Agua!", "message": "¡Felicidades! Has seguido el flujo de GTD a la perfección. Has transformado una fuente de estrés en un plan de acción claro, liberando tu mente para enfocarte sin ansiedad.", "moraleja": "De una pequeña interrupción, nació un proyecto claro. Ese es el superpoder de GTD." } },
+
+            // --- AVENTURA 2: EL ARTE DE ESPERAR (Gestión de Listas 'A la Espera') ---
+            "waiting_for_start": { "text": "Es martes. La semana pasada pediste a tu compañero David un informe crucial para este viernes. Aún no tienes noticias. ¿Qué haces?", "options": [ { "text": "Le envío un WhatsApp: 'David, ¿qué pasa con el informe?'", "next": "waiting_for_whatsapp" }, { "text": "Espero un poco más. Seguro que está en ello.", "next": "waiting_for_wait" }, { "text": "Reviso mi sistema GTD para ver cómo lo gestionei.", "next": "waiting_for_check_system" } ] },
+            "waiting_for_whatsapp": { "text": "Le has enviado un WhatsApp rápido a David.", "outcome": { "title": "Resultado: Ansiedad y Falta de Registro", "message": "David ve el mensaje pero está en una reunión y lo olvida. No tienes un registro formal del seguimiento y tu ansiedad aumenta a medida que se acerca el viernes.", "moraleja": "Un WhatsApp se lo lleva el viento digital. Si es importante, necesita un sistema." } },
+            "waiting_for_wait": { "text": "Decides esperar, confiando en la buena fe de tu compañero.", "outcome": { "title": "Resultado: Pánico de Última Hora", "message": "Llega el jueves por la tarde y te acuerdas del informe con un sobresalto. Ahora tienes que presionar a David, generando una crisis innecesaria para ambos.", "moraleja": "La 'esperanza' no es una estrategia de seguimiento. Tu mente no es un buen recordatorio." } },
+            "waiting_for_check_system": { "text": "<b>(Reflexionar)</b> ¡Decisión inteligente! Confías en tu sistema. Abres tu lista 'A la espera' y ahí está: '@EsperandoDe: David - Informe de ventas Q3 - Vence el viernes'. El sistema funciona. Ahora, ¿qué haces?", "options": [ { "text": "Añado una tarea: 'Preguntar a David por informe'.", "next": "waiting_for_new_task" }, { "text": "Le envío un email formal para hacer el seguimiento.", "next": "waiting_for_email" } ] },
+            "waiting_for_new_task": { "text": "Has creado una nueva tarea para hacer el seguimiento.", "outcome": { "title": "Resultado: Redundancia y Ruido", "message": "Este es un error común. Ya tienes el recordatorio en el lugar correcto ('A la espera'). Crear una segunda tarea para gestionar la primera solo añade complejidad y ruido a tus listas.", "moraleja": "No crees una tarea para recordar un recordatorio. Confía en tus listas, para eso están." } },
+            "waiting_for_email": { "text": "<b>(Ejecutar)</b> ¡Acción correcta! El seguimiento es una acción. Redactas un email amable: 'Hola David, solo para hacer seguimiento del informe de ventas Q3. ¿Cómo lo llevas? Lo necesitaría para el viernes. ¡Gracias!'. Lo envías. ¿Y ahora qué?", "options": [ { "text": "Nada. Ya le he escrito, ahora es su responsabilidad.", "next": "waiting_for_do_nothing" }, { "text": "Actualizo la entrada en mi lista 'A la espera'.", "next": "waiting_for_update_system" } ] },
+            "waiting_for_do_nothing": { "text": "Consideras el trabajo hecho y pasas a otra cosa.", "outcome": { "title": "Resultado: Sistema Desactualizado", "message": "Cuando revises tu lista 'A la espera' mañana, no recordarás si hiciste el seguimiento o no. Podrías volver a escribirle, pareciendo pesado. Tu sistema ha dejado de reflejar la realidad.", "moraleja": "Un sistema desactualizado es peor que no tener sistema. Es un mapa que miente." } },
+            "waiting_for_update_system": { "text": "<b>(Organizar)</b> Abres tu lista 'A la espera' y anotas la fecha del seguimiento. La entrada ahora dice: '@EsperandoDe: David - Informe de ventas Q3 - Vence el viernes (Seguimiento hecho el 23/08)'.", "outcome": { "title": "Resultado: ¡Mente como el Agua!", "message": "¡Felicidades! David te responde a la hora; se había atascado y tu email le sirve para pedirte ayuda. Lo solucionáis y te entrega el informe el jueves. Tienes control total y cero estrés.", "moraleja": "La lista 'A la espera' no es un cementerio de tareas, es una pista de despegue para seguimientos efectivos." } },
+
+            // --- AVENTURA 3: EL PROYECTO AMBIGUO (Planificación Natural de Proyectos) ---
+            "project_start": { "text": "Haciendo un barrido mental, anotas una idea en tu bandeja de entrada: 'Organizar vacaciones de verano'. Es una 'cosa' grande y difusa.", "options": [ { "text": "La dejo ahí para más tarde.", "next": "project_procrastinate" }, { "text": "La proceso ahora para aclararla.", "next": "project_clarify_purpose" } ] },
+            "project_procrastinate": { "text": "Has dejado la idea en el inbox.", "outcome": { "title": "Resultado: Bucle Abierto", "message": "Esa idea se quedará en tu mente, consumiendo energía y generando un vago sentimiento de culpa cada vez que la veas. Tu inbox no es un almacén.", "moraleja": "Una bandeja de entrada sin procesar es el criadero de la ansiedad." } },
+            "project_clarify_purpose": { "text": "<b>(Aclarar - Paso 1: Propósito)</b> Decides procesar la 'cosa'. Te das cuenta de que es un proyecto. Aplicas la Planificación Natural de Proyectos. ¿Cuál es la primera pregunta?", "options": [ { "text": "¿Qué tengo que hacer primero?", "next": "project_jump_to_action" }, { "text": "¿POR QUÉ quiero hacer esto?", "next": "project_clarify_vision" } ] },
+            "project_jump_to_action": { "text": "Has intentado definir acciones sin un propósito claro.", "outcome": { "title": "Resultado: Acciones sin Dirección", "message": "Si empiezas a listar acciones (buscar vuelos, hotel...) sin saber el 'porqué' (¿descansar?, ¿aventura?, ¿tiempo en familia?), tus decisiones no tendrán un filtro. Acabarás con un plan que no te satisface.", "moraleja": "Sin un 'porqué', cualquier 'cómo' te llevará al lugar equivocado." } },
+            "project_clarify_vision": { "text": "<b>(Aclarar - Paso 2: Visión)</b> ¡Correcto! El propósito es 'desconectar y pasar tiempo de calidad en familia'. Ahora que sabes el porqué, ¿cuál es el siguiente paso?", "options": [ { "text": "Hacer una lluvia de ideas de todo lo que hay que hacer.", "next": "project_brainstorm_too_early" }, { "text": "Visualizar cómo sería el éxito. ¿Qué veríamos en unas vacaciones perfectas?", "next": "project_brainstorm" } ] },
+            "project_brainstorm_too_early": { "text": "Has empezado a hacer una lluvia de ideas.", "outcome": { "title": "Resultado: Lluvia de Ideas sin Foco", "message": "La lluvia de ideas es crucial, pero sin una visión clara del resultado deseado, es como un barco sin timón. No sabrás qué ideas son buenas o malas porque no tienes un destino con el que compararlas.", "moraleja": "Una lluvia de ideas sin visión es solo una tormenta." } },
+            "project_brainstorm": { "text": "<b>(Aclarar - Paso 3: Lluvia de Ideas)</b> ¡Bien! Visualizas el éxito: 'Una semana en una playa tranquila, con buena comida y sin agobios'. Con esa imagen en mente, haces una lluvia de ideas: buscar destino, presupuesto, fechas, vuelos, hotel, actividades... ¿Cuál es el siguiente paso crucial?", "options": [ { "text": "Intento ordenar y estructurar toda la lluvia de ideas en un plan perfecto.", "next": "project_over_organize" }, { "text": "De toda la lista, solo identifico la primerísima acción física para empezar.", "next": "project_next_action" } ] },
+            "project_over_organize": { "text": "Has intentado crear un plan perfecto desde el principio.", "outcome": { "title": "Resultado: Parálisis por Sobre-organización", "message": "Intentar organizar cada detalle de tu lluvia de ideas antes de empezar es una trampa. El plan perfecto no existe y cambiará. Lo importante es generar inercia con la primera acción.", "moraleja": "No intentes dibujar el mapa completo del tesoro antes de dar el primer paso. A menudo, el primer paso te revela el resto del mapa." } },
+            "project_next_action": { "text": "<b>(Organizar - Pasos 4 y 5)</b> ¡Exacto! Revisas tu caótica lluvia de ideas y solo te preguntas: '¿Qué es lo primero que tengo que hacer para que esto avance?'. Identificas la acción: 'Buscar en Google 'mejores destinos de playa en julio para familias''.", "outcome": { "title": "Resultado: ¡Mente como el Agua!", "message": "¡Felicidades! Has transformado una idea vaga en un proyecto con un propósito claro y, lo más importante, una primera acción tangible que rompe la inercia. El resto del plan se aclarará sobre la marcha.", "moraleja": "GTD no va de tener un plan perfecto, va de saber siempre cuál es el siguiente paso." } },
+
+            // --- AVENTURA 4: LA JUNGLA DE CONTEXTOS (Uso de Contextos) ---
+            "context_start": { "text": "Tienes 15 minutos libres antes de una reunión. Estás en tu ordenador. Es una buena oportunidad para avanzar algo. Abres tu gestor de tareas. ¿Qué lista miras?", "options": [ { "text": "La lista general con todas mis 'Próximas Acciones'.", "next": "context_brute_force" }, { "text": "La lista de mi proyecto más importante.", "next": "context_project_list" }, { "text": "La lista filtrada por el contexto '@Ordenador'.", "next": "context_filter_correctly" } ] },
+            "context_brute_force": { "text": "Miras tu lista maestra de acciones.", "outcome": { "title": "Resultado: Parálisis por Análisis", "message": "Te enfrentas a más de 100 tareas. Muchas no las puedes hacer ahora (llamar a alguien, comprar algo...). Pierdes tus 15 minutos decidiendo qué hacer en lugar de hacerlo.", "moraleja": "Mirar todas tus tareas a la vez es como intentar leer todas las páginas de un libro a la vez." } },
+            "context_project_list": { "text": "Miras la lista de un proyecto.", "outcome": { "title": "Resultado: Visión sin Acción", "message": "Ver el proyecto te da perspectiva, pero la lista de un proyecto contiene acciones para muchos contextos diferentes. No te dice qué puedes hacer AHORA MISMO con la herramienta que tienes delante: tu ordenador.", "moraleja": "No puedes 'hacer' un proyecto, solo puedes hacer sus acciones. Y solo en el contexto adecuado." } },
+            "context_filter_correctly": { "text": "<b>(Ejecutar)</b> ¡Correcto! Filtras por '@Ordenador'. La lista se reduce a 50 tareas. Sigue siendo mucho y te sientes un poco abrumado. ¿Qué haces?", "options": [ { "text": "Elijo la primera de la lista y empiezo, sin pensar más.", "next": "context_random_choice" }, { "text": "Invierto 2 minutos en refinar mi sistema de contextos.", "next": "context_refine_how" } ] },
+            "context_random_choice": { "text": "Has elegido una tarea al azar.", "outcome": { "title": "Resultado: Actividad no Óptima", "message": "Hacer algo es mejor que no hacer nada, pero podrías haber usado esos 15 minutos en una tarea de alto impacto. Un contexto demasiado genérico no te ayuda a tomar la mejor decisión.", "moraleja": "Estar ocupado no es lo mismo que ser productivo. Los buenos contextos te ayudan a elegir mejor." } },
+            "context_refine_how": { "text": "<b>(Organizar/Reflexionar)</b> Decides que '@Ordenador' es demasiado amplio. Creas sub-contextos más específicos. ¿Cuál de estas opciones es un CONTEXTO GTD puro?", "options": [ { "text": "Por herramienta: @Email, @Excel, @Slack.", "next": "context_refine_tool" }, { "text": "Por nivel de energía: @BajaEnergia, @AltaConcentracion.", "next": "context_refine_energy" }, { "text": "Por área de vida: @Trabajo, @Personal.", "next": "context_refine_area" } ] },
+            "context_refine_tool": { "text": "Has creado contextos basados en la herramienta.", "outcome": { "title": "Resultado: ¡Mente como el Agua!", "message": "¡Perfecto! Ahora, en tus 15 minutos, puedes mirar la lista '@Email' que solo tiene 3 tareas. Eliges una, la haces y vas a tu reunión con la sensación del deber cumplido.", "moraleja": "Un buen contexto te dice lo que puedes hacer. Un gran contexto te oculta todo lo que NO puedes hacer." } },
+            "context_refine_energy": { "text": "Has creado contextos basados en la energía.", "outcome": { "title": "Resultado: Un 'Hack' Útil pero Peligroso", "message": "Es una estrategia popular y puede ser útil para ELEGIR qué hacer. Sin embargo, la energía no es un requisito para hacer la tarea, por lo que no es un contexto 'puro'. El riesgo es crear un sistema demasiado subjetivo.", "moraleja": "Usar la energía como contexto es como ordenar tu despensa por el hambre que tienes: funciona hoy, pero mañana es un caos." } },
+            "context_refine_area": { "text": "Has creado contextos basados en áreas.", "outcome": { "title": "Resultado: Confusión Clásica", "message": "Has confundido los Contextos (el 'dónde' o 'con qué' haces la tarea) con las Áreas de Responsabilidad (el 'porqué'). Esto no te ayuda a filtrar qué puedes hacer AHORA MISMO.", "moraleja": "Mezclar contextos y áreas es como hacer una ensalada con fruta y herramientas. Ambas cosas son útiles, pero no juntas en el mismo bol." } },
+
+            // --- AVENTURA 5: LA REVISIÓN SEMANAL ---
+            "review_start": { "text": "4 PM del viernes. Estás agotado. Tu calendario te avisa: 'Revisión Semanal'. ¿Cuál es tu reacción?", "options": [ { "text": "Uf, no puedo. La pospongo para el domingo por la noche.", "next": "review_postpone" }, { "text": "Vale, a por ello. Es un compromiso conmigo mismo.", "next": "review_get_clear" } ] },
+            "review_postpone": { "text": "Has decidido posponer la Revisión Semanal.", "outcome": { "title": "Resultado: El Fin de Semana Hipotecado", "message": "La Revisión Semanal es la clave de la confianza en tu sistema. Al posponerla, pasarás el fin de semana con una sensación de descontrol y bucles abiertos en tu cabeza.", "moraleja": "Saltarse la Revisión Semanal es como no mirar el GPS en un viaje largo: puede que llegues, pero seguro que das más vueltas y gastas más gasolina." } },
+            "review_get_clear": { "text": "<b>(Reflexionar - Fase 1: Despejar)</b> Te sientas para empezar. ¿Cuál es el primer paso absolutamente esencial de la Revisión Semanal?", "options": [ { "text": "Revisar mi lista de proyectos para ver el panorama general.", "next": "review_look_at_projects" }, { "text": "Recopilar papeles sueltos y procesar TODAS mis bandejas de entrada a cero.", "next": "review_get_current" } ] },
+            "review_look_at_projects": { "text": "Has empezado mirando tus proyectos.", "outcome": { "title": "Resultado: Revisión Incompleta", "message": "No puedes tener una visión clara de tus proyectos si todavía tienes 'cosas' sin procesar en tus bandejas de entrada. Podría haber un email con información crucial que cambie el estado de un proyecto.", "moraleja": "No puedes leer el mapa del viaje si todavía tienes las maletas por hacer." } },
+            "review_get_current": { "text": "<b>(Reflexionar - Fase 2: Ponerse al día)</b> ¡Correcto! Has vaciado tus bandejas de entrada. Te sientes más ligero. Ahora tienes una visión completa y limpia de tu sistema. ¿Qué revisas ahora?", "options": [ { "text": "Reviso mis listas: Próximas Acciones, Proyectos, A la Espera, Algún Día/Tal Vez...", "next": "review_get_creative" }, { "text": "Me pongo a hacer ya tareas para la semana que viene.", "next": "review_start_doing" } ] },
+            "review_start_doing": { "text": "Has empezado a ejecutar tareas.", "outcome": { "title": "Resultado: Foco Perdido", "message": "La revisión es un momento para la perspectiva, no para la ejecución. Si te pones a 'hacer', pierdes la oportunidad de ver el bosque en lugar de los árboles y tomar decisiones estratégicas para la semana.", "moraleja": "La Revisión Semanal es para afilar el hacha, no para cortar árboles." } },
+            "review_get_creative": { "text": "<b>(Reflexionar - Fase 3: Ser Creativo)</b> Has revisado todas tus listas. Tu sistema está actualizado y confías en él. ¿Cuál es el paso final que cierra el círculo para una tranquilidad total?", "options": [ { "text": "Hacer un barrido mental final para capturar cualquier otra cosa que ronde mi cabeza.", "next": "review_final_good" }, { "text": "Ya está todo revisado. Doy por terminada la revisión.", "next": "review_skip_mindsweep" } ] },
+            "review_skip_mindsweep": { "text": "Has dado por terminada la revisión sin el último paso.", "outcome": { "title": "Resultado: Revisión al 99%", "message": "Has hecho un gran trabajo, pero te has saltado el paso final que garantiza una mente despejada. Al no hacer un último barrido mental, corres el riesgo de pasar el fin de semana con ideas y preocupaciones rondando en tu cabeza.", "moraleja": "Una Revisión Semanal sin un barrido mental final es como limpiar toda la casa y dejar una bolsa de basura en la puerta." } },
+            "review_final_good": { "text": "Terminas tu barrido mental y lo dejas en el inbox para procesar el lunes.", "outcome": { "title": "Resultado: ¡Mente como el Agua!", "message": "¡Felicidades! Has completado una revisión perfecta. Tu sistema es un reflejo fiel de tu realidad, confías plenamente en él y tienes la perspectiva necesaria para afrontar la próxima semana. Puedes desconectar de verdad.", "moraleja": "La Revisión Semanal es el mejor regalo que tu 'yo' del presente puede hacerle a tu 'yo' del futuro." } },
+
+            // --- AVENTURA 6: LA BÚSQUEDA DE LA APP PERFECTA ---
+            "tool_start": { "text": "Estás haciendo tu Revisión Semanal y sientes que tu app de tareas te genera fricción. Recuerdas un post que guardaste sobre una nueva app que parece increíble.", "options": [ { "text": "¡Esta es la solución! Dedico la tarde a migrar todo mi sistema.", "next": "tool_migrate" }, { "text": "Un momento. ¿Qué significa realmente esta 'fricción'?", "next": "tool_clarify" } ] },
+            "tool_migrate": { "text": "Has dedicado la tarde a cambiar de herramienta.", "outcome": { "title": "Resultado: El Hobby de la Productividad", "message": "Has confundido 'estar ocupado' con 'ser productivo'. Cambiar de herramienta constantemente es una forma de procrastinación que te aleja de tus verdaderos objetivos.", "moraleja": "A veces, la herramienta más productiva es la que dejas de buscar." } },
+            "tool_clarify": { "text": "<b>(Aclarar)</b> Pausas y reflexionas. Te das cuenta de que la 'fricción' no es por la app, sino porque tu sistema está descontrolado. La nueva app es solo una distracción. ¿Qué haces con el post sobre la app para poder centrarte?", "options": [ { "text": "Lo dejo abierto en una pestaña del navegador para verlo después.", "next": "tool_browser_tab" }, { "text": "Lo capturo en mi bandeja de entrada para procesarlo más tarde.", "next": "tool_capture" } ] },
+            "tool_browser_tab": { "text": "Has dejado la pestaña abierta.", "outcome": { "title": "Resultado: Desorden Digital", "message": "Dejar pestañas abiertas 'para después' es una forma de procrastinación. Genera ruido visual y mental, y es poco probable que vuelvas a ello con la atención que requiere.", "moraleja": "Una pestaña abierta es un bucle abierto en tu navegador... y en tu cerebro." } },
+            "tool_capture": { "text": "<b>(Capturar)</b> ¡Bien! Sacas la idea de tu vista y la pones en un lugar de confianza. Más tarde, al procesar tu inbox, ves la nota: 'Considerar nueva app de tareas'. No es una prioridad, pero te interesa. ¿Dónde la guardas?", "options": [ { "text": "Creo un proyecto: 'Investigar y migrar a nueva app'.", "next": "tool_overcommit" }, { "text": "Lo añado a mi lista 'Algún Día/Tal Vez'.", "next": "tool_incubate" } ] },
+            "tool_overcommit": { "text": "Has creado un nuevo proyecto.", "outcome": { "title": "Resultado: Compromiso Prematuro", "message": "Crear un proyecto es un compromiso serio. Lo has añadido a tu lista de proyectos activos, generando más ruido y una obligación que no has decidido si realmente quieres asumir.", "moraleja": "No conviertas una simple curiosidad en un compromiso. Para eso existe la lista 'Algún Día/Tal Vez'." } },
+            "tool_incubate": { "text": "<b>(Organizar)</b> Anotas 'Considerar nueva app de tareas' en tu lista 'Algún Día/Tal Vez'.", "outcome": { "title": "Resultado: ¡Mente como el Agua!", "message": "¡Excelente! Has reconocido que la herramienta es solo el 1%. Has aparcado la distracción en un lugar seguro y de confianza para centrarte en lo que de verdad importa: tus hábitos y tu revisión.", "moraleja": "Tu sistema de productividad no es una vitrina de apps, es un taller para hacer cosas." } }
+        };
+        
+        // --- DATA STORE FOR DYNAMIC CHARTS ---
+        // --- INICIO DE DATOS CORREGIDOS ---
+        const dataStore = {
+            temas: {
+                //                                      16  17  18  19  20  21  22  23  24  25
+                "Implementación y Hábitos":                 [1,  5, 10,  8,  8,  8,  6, 11,  8,  6],
+                "Herramientas y Metodología":              [2,  6,  5,  9,  9,  6,  1,  3,  6,  1],
+                "Proyectos y Tareas/Acciones":             [3,  4,  2,  4,  4,  4,  4,  6,  1,  3],
+                "Contextos":                               [4,  1,  1,  1,  1,  1,  3,  9,  2, 11],
+                "Captura y Bandeja de Entrada":            [5,  3, 11,  3,  3,  3,  2, 11,  3,  8],
+                "Revisiones":                              [6,  2,  3,  2,  2,  5,  9,  7,  5,  5],
+                "Gestión de Tiempo e Interrupciones":      [7, 11, 11, 11, 10, 10, 10, 11, 10, 11],
+                "Papel vs. Digital":                       [8,  8, 11, 11, 11,  9,  8,  4,  4,  4],
+                "Gestión de Objetivos":                    [9, 11,  4, 11, 11, 11,  7, 11, 11, 11],
+                "GTD en Equipo":                           [10, 10, 11, 11, 11, 11, 11, 11, 11, 10],
+                "Automatización y Workflows":              [11, 7,  9, 11, 11, 11, 11, 11, 11, 11],
+                "Material de Referencia":                  [11, 9,  7,  6,  6,  7, 11,  5,  7,  7],
+                "Checklists":                              [11, 11, 11, 5,  5,  2,  5, 11, 11, 11],
+                "Comparación de Metodologías":             [11, 11, 11, 7,  7, 11, 11,  3,  9, 11],
+                "Inteligencia Artificial (IA)":            [11, 11, 11, 11, 11, 11, 11,  1, 11,  9],
+                "Gestión del Estrés":                      [11, 11, 11, 11, 11, 11, 11,  2, 11, 11],
+                "Gestión de Comunicación":                 [11, 11, 11, 11, 11, 11, 11,  8, 11, 11],
+                "GTD en profesiones con interrupciones":   [11, 11, 11, 11, 11, 11, 11, 10, 11,  2],
+                "Gestión de la Energía y Prioridad":       [11, 11,  8, 11, 11, 11, 11, 11, 11, 11],
+                "Niveles de Perspectiva":                  [11, 11,  6, 10, 11, 11, 11, 11, 11, 11]
+            },
+            dudas: {
+                //                                                16  17  18  19  20  21  22  23  24  25
+                "Contextos vs Áreas de Responsabilidad":        [1,  1,  2,  1,  1,  1,  2,  5,  2,  2],
+                "Organización de Proyectos y Acciones":         [2,  3,  1,  4,  4,  2,  1,  2,  1,  4],
+                "Uso de Fechas (aplazar/vencimiento)":          [3,  4,  3,  7,  7, 10,  7,  7,  3,  5],
+                "Captura Rápida (Siri, etc.)":                  [4,  8, 11, 11, 11,  4, 11,  6, 10, 11],
+                "Revisiones (frecuencia, método)":              [5,  7, 11,  2,  2,  7,  9, 11,  7,  6],
+                "Tareas Recurrentes / Proyectos Repetitivos":   [6,  2,  7,  5,  3,  3,  5, 11, 11,  7],
+                "Volumen de Tareas / Sobrecarga":               [7, 11, 11, 11, 10, 11, 10,  8,  4,  9],
+                "Gestión de Interrupciones":                    [8, 11,  8, 11, 11,  8, 11, 11, 11, 11],
+                "Elección de Herramienta / Multiplataforma":    [9,  6,  5,  9,  5,  5, 11, 11,  8, 11],
+                "Agendar vs Planificar":                        [10, 11, 10, 11, 11, 11, 11, 11, 11, 11],
+                "Material de Apoyo":                            [11, 9,  9,  6,  6,  9,  4,  4,  9,  8],
+                "Sistema Personal vs Profesional":              [11, 10, 11, 11, 11, 11, 11, 11, 11,  1],
+                "Lista 'A la espera'":                          [11, 11,  4,  8,  8,  6,  6,  1,  6,  3],
+                "Integración de niveles de perspectiva":        [11, 5,  6, 10, 11, 11, 11,  9, 11, 11],
+                "Captura de información externa":               [11, 11, 11,  3,  9, 11,  3,  3, 11, 11],
+                "Cómo empezar con GTD":                         [11, 11, 11, 11, 11, 11,  8, 10,  5, 10]
+            },
+            herramientas: {
+                "Omnifocus":                               [1, 1, 1, 2, 4, 5, 7, 2, 7, 7],
+                "Wunderlist":                              [2, 8, 11, 11, 11, 11, 11, 11, 11, 11],
+                "Todoist":                                 [3, 2, 2, 1, 1, 2, 1, 1, 1, 5],
+                "Papel / Bullet Journal":                  [4, 10, 10, 3, 6, 8, 9, 11, 11, 4],
+                "Trello":                                  [5, 5, 5, 10, 8, 10, 11, 10, 11, 10],
+                "Apple Reminders / Notes":                 [6, 6, 11, 11, 11, 11, 11, 11, 3, 3],
+                "Evernote / OneNote":                      [7, 4, 4, 4, 11, 3, 11, 6, 11, 11],
+                "Things":                                  [8, 3, 3, 11, 11, 11, 6, 11, 11, 1],
+                "Cuadernos y Libretas":                    [9, 11, 11, 11, 11, 11, 11, 11, 11, 11],
+                "Siri / Apple Watch":                      [10, 11, 11, 11, 11, 11, 11, 11, 11, 11],
+                "2Do":                                     [11, 7, 11, 11, 11, 11, 11, 11, 11, 11],
+                "Workflow (iOS)":                          [11, 9, 11, 11, 11, 11, 11, 11, 11, 11],
+                "Microsoft Ecosystem":                     [11, 11, 6, 11, 2, 1, 2, 5, 2, 2],
+                "Google Ecosystem":                        [11, 11, 7, 9, 10, 7, 4, 7, 5, 9],
+                "Nirvana HQ":                              [11, 11, 8, 11, 11, 11, 5, 11, 11, 11],
+                "FacileThings":                            [11, 11, 9, 11, 11, 11, 11, 11, 8, 11],
+                "Braintoss":                               [11, 11, 11, 8, 7, 6, 11, 9, 11, 11],
+                "Notion":                                  [11, 11, 11, 11, 11, 4, 8, 3, 4, 6],
+                "Tick Tick":                               [11, 11, 11, 11, 11, 9, 10, 11, 11, 8],
+                "Obsidian":                                [11, 11, 11, 11, 11, 11, 11, 4, 6, 11],
+                "WhatsApp":                                [11, 11, 11, 5, 5, 11, 11, 11, 11, 11],
+                "Telegram":                                [11, 11, 11, 6, 3, 11, 3, 11, 11, 11],
+                "Correo Electrónico":                      [11, 11, 11, 7, 11, 11, 11, 11, 11, 11],
+                "Pocket/Feedly":                           [11, 11, 11, 11, 9, 11, 11, 11, 11, 11],
+                "Workflowy / Dynalist":                    [11, 11, 11, 11, 11, 11, 11, 8, 10, 11],
+                "Asana":                                   [11, 11, 11, 11, 11, 11, 11, 11, 9, 11]
+            }
+        };
+        // --- FIN DE DATOS CORREGIDOS ---
+        
+        const communitySummaries = {
+            "Temas": {
+                2016: "<div class='text-center'><b>Año Fundacional: Descubriendo el Método</b><br><i>La conversación se centra en entender los conceptos básicos de GTD y cómo adaptarlos a la vida real.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Fuerte enfoque en los fundamentos del método, la selección de herramientas y la organización de proyectos.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Wunderlist, una herramienta que luego sería comprada y descontinuada por Microsoft, era una de las más populares.</p></div>",
+                2017: "<div class='text-center'><b>El Año de los Contextos</b><br><i>La comunidad se sumerge en el debate sobre cómo aplicar este concepto clave en un mundo cada vez más digital.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La comunidad se obsesiona con el concepto de Contextos, el más debatido del año, junto a la importancia de la Revisión Semanal.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La llegada de Things 3 marca un antes y un después en el diseño de apps de productividad, generando mucho debate.</p></div>",
+                2018: "<div class='text-center'><b>Madurez y Consolidación</b><br><i>La conversación se vuelve más matizada, diferenciando claramente entre 'proyecto' y 'acción' y la importancia de la metodología sobre la herramienta.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Se consolida la idea de diferenciar Proyectos (resultados) de Acciones (pasos) y el uso correcto del calendario.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>A pesar de la variedad, la conversación se polariza entre dos gigantes: Todoist y Omnifocus.</p></div>",
+                2019: "<div class='text-center'><b>La Vuelta a lo Analógico</b><br><i>Sorprendentemente, el papel se convierte en la 'herramienta' más discutida, buscando la simplicidad.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Hay un claro movimiento de 'desintoxicación digital', buscando la simplicidad del papel para interiorizar hábitos.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Por primera vez, un método analógico (Cuadernos de Papel) entra en el top 3 de herramientas más mencionadas.</p></div>",
+                2020: "<div class='text-center'><b>Adaptación y Ecosistemas</b><br><i>Con el teletrabajo en pleno apogeo, la integración con ecosistemas como Microsoft y la gestión de la sobrecarga de información son clave.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La pandemia fuerza una adaptación de GTD a entornos colaborativos y a la gestión del 'ruido' de múltiples plataformas.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Se empieza a hablar de metodologías complementarias como PARA para la gestión del conocimiento.</p></div>",
+                2021: "<div class='text-center'><b>Foco en la Implementación Práctica</b><br><i>El debate se centra en elementos prácticos como los Checklists y la correcta redacción de acciones.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El foco se mueve de la teoría a la práctica, con interés en elementos granulares del sistema como los checklists y el material de apoyo.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Notion irrumpe con fuerza, mostrando una tendencia hacia herramientas 'todo en uno' que integran tareas y conocimiento.</p></div>",
+                2022: "<div class='text-center'><b>GTD en un Ecosistema Ampliado</b><br><i>La comunidad ya no solo habla de GTD, sino de cómo se integra con sistemas de gestión del conocimiento.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>GTD deja de ser un sistema aislado y se integra en un 'stack' de productividad personal más amplio, junto a métodos como PARA o Zettelkasten.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La duda sobre cómo gestionar el Material de Apoyo sube en el ranking, reflejando el interés en sistemas de 'segundo cerebro'.</p></div>",
+                2023: "<div class='text-center'><b>La Era de la Inteligencia Artificial</b><br><i>La llegada de ChatGPT domina la conversación, explorando cómo la IA puede ayudar (o complicar) la productividad.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La IA se convierte en el tema dominante, generando tanto entusiasmo como escepticismo, mientras se debate la gestión del estrés y el desbordamiento.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La gestión de la lista 'A la espera' se convierte en la duda número 1 del año, reflejando la complejidad de la delegación en entornos modernos.</p></div>",
+                2024: "<div class='text-center'><b>Refinamiento y Nuevas Metodologías</b><br><i>El debate entre GTD y ARC se vuelve prominente. Los usuarios buscan optimizar sus sistemas y gestionar el email de forma eficaz.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Los usuarios buscan optimizar y refinar sus sistemas, comparando GTD con nuevos enfoques como ARC y buscando soluciones para el 'Inbox Zero'.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La duda sobre 'Papel vs Digital' vuelve al top 10, demostrando que el debate sigue vivo y es un pilar en la comunidad.</p></div>",
+                2025: "<div class='text-center'><b>El Presente: Personal vs. Laboral</b><br><i>La gran conversación del año es cómo separar o integrar los sistemas de productividad personales y los impuestos por las empresas.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El principal desafío es la convivencia entre el sistema personal y las herramientas impuestas por el trabajo, unificando flujos.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Things 3 se convierte en la herramienta número 1 por primera vez, indicando una preferencia por el diseño y la simplicidad en la experiencia de usuario.</p></div>"
+            },
+            "Dudas": {
+                2016: "<div class='text-center'><b>Dudas Fundacionales</b><br><i>Las preguntas se centran en la diferencia entre conceptos clave como 'Contextos' y 'Áreas'.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Los recién llegados luchan con la terminología específica de GTD y la configuración inicial de las herramientas.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La pregunta sobre 'Contextos vs Áreas' es tan recurrente que se convierte en un clásico de la comunidad.</p></div>",
+                2017: "<div class='text-center'><b>El Dilema de los Contextos</b><br><i>La duda principal sigue siendo cómo definir y usar los contextos de manera efectiva.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La aplicación práctica de los contextos en un entorno digital es el mayor punto de fricción, junto a la gestión de tareas recurrentes.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La gestión de tareas recurrentes emerge como un dolor de cabeza importante para los usuarios.</p></div>",
+                2018: "<div class='text-center'><b>Aclarando la Terminología</b><br><i>La diferencia entre 'tarea', 'acción' y 'proyecto' se convierte en la duda principal.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La comunidad se esfuerza por dominar el lenguaje preciso de GTD para mejorar la claridad de sus sistemas.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La lista 'A la espera' entra por primera vez en el ranking de dudas, señalando un aumento en la delegación y el trabajo en equipo.</p></div>",
+                2019: "<div class='text-center'><b>La Revisión Semanal en el Foco</b><br><i>La implementación de la Revisión Semanal se convierte en una de las dudas más importantes.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Los usuarios entienden la importancia de la revisión, pero luchan por convertirla en un hábito consistente y ágil.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La gestión del 'Material de Apoyo' gana relevancia, mostrando una mayor madurez en el uso del sistema.</p></div>",
+                2020: "<div class='text-center'><b>Adaptación al Teletrabajo</b><br><i>Las dudas reflejan los nuevos desafíos del trabajo en remoto, como la gestión de interrupciones y la sobrecarga de información.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El teletrabajo masivo obliga a repensar la aplicación de conceptos como los contextos y la gestión de múltiples bandejas de entrada.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La duda sobre 'Contextos vs Áreas' sigue en el #1, demostrando ser un desafío perenne.</p></div>",
+                2021: "<div class='text-center'><b>Granularidad del Sistema</b><br><i>Las dudas se vuelven más específicas, centrándose en el uso de checklists y la gestión del material de apoyo.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Los usuarios buscan optimizar los detalles de sus sistemas para manejar una mayor complejidad en sus flujos de trabajo.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La compatibilidad (o no) del 'time blocking' con la filosofía GTD se convierte en un punto de debate.</p></div>",
+                2022: "<div class='text-center'><b>Integración de Sistemas</b><br><i>La duda principal es cómo organizar proyectos y acciones, reflejando la necesidad de conectar GTD con otros sistemas de conocimiento.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La claridad en la estructura del sistema se vuelve crucial a medida que los flujos de trabajo se complican, y se buscan métodos para gestionar el archivo.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La gestión del 'Material de Apoyo' alcanza su punto más alto en el ranking histórico, vinculándose a métodos como PARA.</p></div>",
+                2023: "<div class='text-center'><b>El Reto de la Delegación</b><br><i>La gestión de la lista 'A la espera' se convierte en la duda número uno.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El trabajo colaborativo y la delegación se consolidan como el principal desafío para los usuarios de GTD en entornos laborales modernos.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La IA irrumpe en la conversación, pero las dudas fundamentales sobre el método (proyectos, contextos) siguen siendo las mismas.</p></div>",
+                2024: "<div class='text-center'><b>Vuelta a los Orígenes</b><br><i>Las dudas sobre la organización de proyectos, el uso de contextos y la gestión del email vuelven a dominar la conversación.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Incluso los usuarios experimentados necesitan revisar y reforzar los conceptos básicos periódicamente para evitar la sobrecarga.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La duda sobre 'Papel vs Digital' regresa al top 10, mostrando que la búsqueda de la herramienta perfecta nunca termina.</p></div>",
+                2025: "<div class='text-center'><b>La Frontera Final: Personal vs. Profesional</b><br><i>La duda más importante del año es cómo gestionar la separación o integración de los sistemas personal y laboral.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>La línea entre el trabajo y la vida personal se difumina, y los sistemas de productividad deben adaptarse a herramientas corporativas impuestas.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La gestión de la lista 'A la espera' se mantiene en el top 3, consolidándose como un punto de dolor crónico.</p></div>"
+            },
+            "Herramientas": {
+                2016: "<div class='text-center'><b>La Batalla de los Titanes</b><br><i>Omnifocus se establece como la herramienta de referencia para los usuarios de Apple, en dura pugna con Wunderlist.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El ecosistema Apple domina la conversación sobre herramientas de productividad, con Omnifocus a la cabeza.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Wunderlist, en el #2, sería adquirida por Microsoft ese mismo año, marcando el fin de una era.</p></div>",
+                2017: "<div class='text-center'><b>La Irrupción del Diseño</b><br><i>Things 3 entra con fuerza en el ranking, desafiando el dominio de Omnifocus con un enfoque en la estética y la simplicidad.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El diseño y la experiencia de usuario se convierten en factores clave para la elección de herramientas.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>El interés por la automatización se refleja en la aparición de Workflow (ahora Atajos de Apple) en el top 10.</p></div>",
+                2018: "<div class='text-center'><b>El Reinado de Omnifocus y Todoist</b><br><i>Las dos herramientas se consolidan como las opciones dominantes para usuarios de Apple y multiplataforma, respectivamente.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El mercado se polariza entre la potencia de Omnifocus y la flexibilidad de Todoist.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Nirvana HQ y FacileThings, clientes de GTD muy puristas, hacen su aparición en el ranking.</p></div>",
+                2019: "<div class='text-center'><b>La Rebelión del Papel</b><br><i>Todoist se alza con el primer puesto, pero la gran sorpresa es la irrupción del Bullet Journal y el papel en el top 3.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Existe una fatiga digital que lleva a los usuarios a buscar soluciones analógicas más simples para interiorizar los hábitos.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Braintoss, una app de captura rápida, entra en el ranking, mostrando la importancia de reducir la fricción al capturar.</p></div>",
+                2020: "<div class='text-center'><b>La Conquista de Microsoft</b><br><i>El ecosistema de Microsoft (To Do, OneNote) se convierte en una alternativa sólida, impulsado por el teletrabajo.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Las herramientas integradas en el entorno laboral ganan una enorme popularidad.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Todoist se mantiene como la herramienta más popular por segundo año consecutivo.</p></div>",
+                2021: "<div class='text-center'><b>La Explosión de Notion</b><br><i>Microsoft To Do se hace con el primer puesto, pero la gran noticia es la consolidación de Notion como una herramienta 'todo en uno'.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Los usuarios buscan centralizar no solo sus tareas, sino también su conocimiento y notas, aunque con riesgo de sobrecomplicación.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>La popularidad de Microsoft To Do demuestra el poder de las herramientas gratuitas y bien integradas en el ecosistema corporativo.</p></div>",
+                2022: "<div class='text-center'><b>El Ecosistema Integrado</b><br><i>Todoist recupera el trono, pero la conversación se centra en cómo integrar el gestor de tareas con otras apps como Evernote, OneNote y Obsidian.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>El gestor de tareas ya no es una isla, sino el centro de un ecosistema de productividad personal.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Obsidian aparece por primera vez, señalando el auge de las herramientas de 'segundo cerebro' basadas en archivos locales.</p></div>",
+                2023: "<div class='text-center'><b>La IA y el Retorno de los Clásicos</b><br><i>Mientras la IA domina los temas, las herramientas más mencionadas siguen siendo las clásicas: Todoist y Omnifocus.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>A pesar del 'hype' de la IA, los usuarios siguen confiando en herramientas maduras y estables para su día a día.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>Notion se consolida en el top 3, demostrando que su flexibilidad ha llegado para quedarse, a pesar de su complejidad.</p></div>",
+                2024: "<div class='text-center'><b>La Simplificación Nativa</b><br><i>Las herramientas nativas como Apple Reminders ganan una tracción sin precedentes, desafiando a los grandes jugadores.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>Los usuarios empiezan a valorar la simplicidad y la integración nativa por encima de la complejidad y las suscripciones.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>FacileThings, otra app purista de GTD, vuelve a entrar en el ranking después de varios años de ausencia.</p></div>",
+                2025: "<div class='text-center'><b>El Triunfo del Diseño</b><br><i>Things 3 se corona como la herramienta número uno por primera vez, demostrando que la experiencia de usuario es un factor decisivo.</i><h4 class='font-semibold mt-3'>🎯 Conclusiones</h4><p>En un mercado maduro, una interfaz cuidada y una experiencia sin fricción pueden marcar la diferencia.</p><h4 class='font-semibold mt-3'>💡 Curiosidades</h4><p>El papel (Bullet Journal) vuelve al top 5, confirmando que la opción analógica siempre será una alternativa relevante y valorada.</p></div>"
+            }
+        };
+
+        const dynamicChartYears = ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+        const dynamicCharts = {};
+        const yearIndexes = { Temas: 0, Dudas: 0, Herramientas: 0 };
+        const animation = { interval: null, category: null };
+        let activeDynamicTab = 'Temas';
+        
+        // --- LÓGICA DE LA APLICACIÓN ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // Main Tabs Logic
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.id.replace('-btn', '-content');
+                    tabButtons.forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                    button.classList.replace('tab-inactive', 'tab-active');
+                    tabContents.forEach(content => content.classList.toggle('hidden', content.id !== tabId));
+                });
+            });
+
+            // Podcast Charts Logic
+            const categories = [...new Set(episodesData.map(ep => ep.category))];
+            const years = [...new Set(episodesData.map(ep => ep.year))].sort();
+            const categoryColors = { 'Fundamentos GTD': 'rgba(59, 130, 246, 0.7)', 'Herramientas': 'rgba(239, 68, 68, 0.7)', 'Gestión Práctica': 'rgba(16, 185, 129, 0.7)', 'Revisiones y Perspectiva': 'rgba(249, 115, 22, 0.7)', 'Hábitos y Productividad General': 'rgba(139, 92, 246, 0.7)', 'Comunidad y Casos Reales': 'rgba(234, 179, 8, 0.7)' };
+            const yearlyData = years.reduce((acc, year) => { acc[year] = categories.reduce((catAcc, cat) => { catAcc[cat] = 0; return catAcc; }, {}); return acc; }, {});
+            episodesData.forEach(ep => { if (yearlyData[ep.year] && yearlyData[ep.year][ep.category] !== undefined) yearlyData[ep.year][ep.category]++; });
+            const totalData = categories.reduce((acc, cat) => { acc[cat] = episodesData.filter(ep => ep.category === cat).length; return acc; }, {});
+            new Chart(document.getElementById('evolutionChart').getContext('2d'), { type: 'bar', data: { labels: years, datasets: categories.map(c => ({ label: c, data: years.map(y => yearlyData[y][c]), backgroundColor: categoryColors[c] })) }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }, plugins: { tooltip: { mode: 'index' } } } });
+            new Chart(document.getElementById('distributionChart').getContext('2d'), { type: 'doughnut', data: { labels: categories, datasets: [{ data: categories.map(c => totalData[c]), backgroundColor: categories.map(c => categoryColors[c]), hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+            
+            // Podcast Table Logic
+            const tableBody = document.getElementById('episodesTableBody'), searchInput = document.getElementById('searchInput'), categoryFilter = document.getElementById('categoryFilter'), yearFilter = document.getElementById('yearFilter');
+            categories.forEach(c => categoryFilter.innerHTML += `<option value="${c}">${c}</option>`);
+            years.forEach(y => yearFilter.innerHTML += `<option value="${y}">${y}</option>`);
+            const renderTable = data => { tableBody.innerHTML = ''; data.forEach(ep => { tableBody.innerHTML += `<tr class="hover:bg-gray-50"><td class="px-4 py-2 text-sm text-gray-500">${ep.no}</td><td class="px-4 py-2 text-sm text-gray-500">${ep.year}</td><td class="px-4 py-2 text-sm font-medium text-gray-900">${ep.title}</td><td class="px-4 py-2 text-sm"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" style="background-color: ${categoryColors[ep.category].replace('0.7', '0.2')}; color: ${categoryColors[ep.category].replace('0.7', '1')}">${ep.category}</span></td></tr>`; }); };
+            const filterData = () => { const s = searchInput.value.toLowerCase(), c = categoryFilter.value, y = yearFilter.value; renderTable(episodesData.filter(ep => ep.title.toLowerCase().includes(s) && (c ? ep.category === c : true) && (y ? ep.year == y : true))); };
+            [searchInput, categoryFilter, yearFilter].forEach(el => el.addEventListener('input', filterData));
+            categoryFilter.addEventListener('change', filterData); yearFilter.addEventListener('change', filterData);
+            renderTable(episodesData);
+
+            // Sub-tabs Logic (Telegram Section)
+            const subTabButtons = document.querySelectorAll('#sub-tab-1-btn, #sub-tab-2-btn');
+            const subTabContents = document.querySelectorAll('#sub-tab-1-content, #sub-tab-2-content');
+            subTabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const subTabId = button.id.replace('-btn', '-content');
+                    subTabButtons.forEach(btn => {
+                        btn.classList.remove('sub-tab-active');
+                        btn.classList.add('sub-tab-inactive');
+                    });
+                    button.classList.add('sub-tab-active');
+                    button.classList.remove('sub-tab-inactive');
+                    subTabContents.forEach(content => content.classList.toggle('hidden', content.id !== subTabId));
+                });
+            });
+
+            // Accordion Logic
+            const accordionContainer = document.getElementById('accordion-container');
+            painPointsData.forEach(item => { accordionContainer.innerHTML += `<div class="border border-gray-200 rounded-lg"><button class="accordion-toggle flex justify-between items-center w-full p-4 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none"><span class="text-lg font-semibold text-gray-800">${item.title.substring(3)}</span><svg class="w-6 h-6 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div class="accordion-content hidden p-6 border-t border-gray-200"><p class="text-gray-600 italic mb-6">${item.description}</p><div class="space-y-6"><div><h4 class="font-semibold" style="color:var(--color-primary-dark);">Definición del Problema</h4><p class="mt-1 text-gray-700">${item.content.definition}</p></div><div><h4 class="font-semibold" style="color:var(--color-primary-dark);">La Voz de la Comunidad</h4><div class="mt-2 space-y-2">${item.content.quotes.map(q => `<blockquote class="border-l-4 border-gray-300 pl-4 text-gray-600 italic">"${q}"</blockquote>`).join('')}</div></div><div><h4 class="font-semibold" style="color:var(--color-primary-dark);">Causas Raíz</h4><p class="mt-1 text-gray-700">${item.content.causes}</p></div><div><h4 class="font-semibold" style="color:var(--color-primary-dark);">Soluciones Sugeridas</h4><p class="mt-1 text-gray-700">${item.content.solutions}</p></div></div></div></div>`; });
+            document.querySelectorAll('.accordion-toggle').forEach(button => { button.addEventListener('click', () => { const c = button.nextElementSibling, i = button.querySelector('svg'); c.classList.toggle('hidden'); i.classList.toggle('rotate-180'); }); });
+            
+            // Adventure Game Logic
+            showAdventureMenu(); // Initial call
+
+            // Dynamic Charts Logic (Telegram Section)
+            ['Temas', 'Dudas', 'Herramientas'].forEach(category => {
+                createDynamicChart(category);
+                updateDynamicChart(category, false);
+            });
+            updateYearlySummary('Temas', dynamicChartYears[0]);
+        });
+
+        // --- ADVENTURE GAME FUNCTIONS ---
+        let adventureHistory = [];
+        const backButtonSynonyms = ["Reflexiona", "Inténtalo de nuevo", "Otra perspectiva", "Vuelve a pensar", "Prueba otro camino"];
+        function renderAdventurePath() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.id !== 'tab-4-btn') {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            });
+
+            const adventureContainer = document.getElementById('adventure-container');
+            adventureContainer.innerHTML = '';
+            adventureHistory.forEach((stepId, index) => {
+                const step = adventureData[stepId];
+                if (!step) { console.error("Adventure step not found:", stepId); showAdventureMenu(); return; }
+                const isLastStep = index === adventureHistory.length - 1;
+                const nodeContent = document.createElement('div');
+                nodeContent.className = 'bg-white p-6 rounded-lg border text-center mb-4';
+                let contentHtml = `<p class="text-lg leading-relaxed">${step.text}</p>`;
+                if (isLastStep && step.options) {
+                    contentHtml += `<div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                    contentHtml += step.options.map(opt => `<button class="adventure-option w-full p-4 bg-white border-2 border-gray-300 rounded-lg text-left" data-next="${opt.next}">${opt.text}</button>`).join('');
+                    contentHtml += `</div>`;
+                } else if (adventureHistory[index + 1]) {
+                    const nextStepId = adventureHistory[index + 1];
+                    const chosenOption = step.options.find(opt => opt.next === nextStepId);
+                    if (chosenOption) { contentHtml += `<div class="mt-6 grid grid-cols-1 gap-4"><button class="adventure-option w-full p-4 bg-white border-2 rounded-lg text-left ring-2" style="border-color: var(--color-primary);" disabled>${chosenOption.text}</button></div>`; }
+                }
+                if (isLastStep && step.outcome) {
+                    const isSuccess = step.outcome.title.includes("¡Mente como el Agua!");
+                    const outcomeBg = isSuccess ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                    const outcomeTitleColor = isSuccess ? 'var(--color-primary-dark)' : 'var(--color-text-primary)';
+                    contentHtml += `<div class="mt-6 p-4 rounded-lg" style="background-color: ${outcomeBg};"><h4 class="font-bold text-lg" style="color: ${outcomeTitleColor};">${step.outcome.title}</h4><p class="mt-2 text-sm">${step.outcome.message}</p></div>`;
+                    if (step.outcome.moraleja) { contentHtml += `<div class="mt-4 text-center italic">${step.outcome.moraleja}</div>`; }
+                    let buttonsHtml = '<div class="flex justify-center space-x-4 mt-6">';
+                    if (isSuccess) {
+                        buttonsHtml += `<button class="font-bold py-2 px-6 rounded-lg text-white transition-colors" style="background-color: var(--color-primary-dark);" onmouseover="this.style.backgroundColor='var(--color-primary)'" onmouseout="this.style.backgroundColor='var(--color-primary-dark)'" data-action="menu">Elegir otra Aventura</button>`;
+                    } else {
+                        const randomSynonym = backButtonSynonyms[Math.floor(Math.random() * backButtonSynonyms.length)];
+                        buttonsHtml += `<button class="font-bold py-2 px-6 rounded-lg text-white transition-colors" style="background-color: var(--color-text-secondary);" onmouseover="this.style.backgroundColor='var(--color-text-primary)'" onmouseout="this.style.backgroundColor='var(--color-text-secondary)'" data-action="back">${randomSynonym}</button>`;
+                    }
+                    buttonsHtml += '</div>';
+                    contentHtml += buttonsHtml;
+                }
+                nodeContent.innerHTML = contentHtml;
+                adventureContainer.appendChild(nodeContent);
+                nodeContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            adventureContainer.querySelectorAll('.adventure-option[data-next]').forEach(button => button.addEventListener('click', (e) => { adventureHistory.push(e.currentTarget.dataset.next); renderAdventurePath(); }));
+            adventureContainer.querySelector('button[data-action="menu"]')?.addEventListener('click', showAdventureMenu);
+            adventureContainer.querySelector('button[data-action="back"]')?.addEventListener('click', () => { adventureHistory.pop(); renderAdventurePath(); });
+        }
+        function showAdventureMenu() {
+            document.querySelectorAll('.tab-btn').forEach(btn => { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); });
+            const adventureContainer = document.getElementById('adventure-container');
+            adventureContainer.innerHTML = '';
+            adventureHistory = [];
+            const startNode = adventureData['start'];
+            const menuWrapper = document.createElement('div');
+            menuWrapper.className = 'bg-white p-6 rounded-lg border text-center';
+            let menuHtml = `<p class="text-lg leading-relaxed">${startNode.text}</p><div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">`;
+            menuHtml += startNode.options.map(opt => `<button class="adventure-option w-full p-4 bg-white border-2 border-gray-300 rounded-lg text-left" data-start-id="${opt.next}">${opt.text}</button>`).join('');
+            menuHtml += `</div>`;
+            menuWrapper.innerHTML = menuHtml;
+            adventureContainer.appendChild(menuWrapper);
+            adventureContainer.querySelectorAll('button[data-start-id]').forEach(button => button.addEventListener('click', (e) => { adventureHistory = [e.currentTarget.dataset.startId]; renderAdventurePath(); }));
+        }
+
+        // --- DYNAMIC CHARTS FUNCTIONS (Telegram Section) ---
+        const itemColorMap = {};
+        const dynamicChartPalette = [ '#3b82f6', '#ef4444', '#10b981', '#f97316', '#8b5cf6', '#eab308', '#64748b', '#ec4899', '#14b8a6', '#d946ef', '#0ea5e9', '#f43f5e', '#84cc16', '#6366f1' ];
+
+        function getColorForItem(item) {
+            if (!itemColorMap[item]) {
+                itemColorMap[item] = dynamicChartPalette[Object.keys(itemColorMap).length % dynamicChartPalette.length];
+            }
+            return itemColorMap[item];
+        }
+
+        function createDynamicChart(category) {
+            const ctx = document.getElementById(`${category}-chart`).getContext('2d');
+            dynamicCharts[category] = new Chart(ctx, {
+                type: 'bar', data: { labels: [], datasets: [{ data: [] }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: false }, beginAtZero: true }, y: { ticks: { autoSkip: false, font: { size: 11 } } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => `${context.dataset.labelOriginals[context.dataIndex]}: ${context.parsed.x}` } } } }
+            });
+        }
+        function updateDynamicChart(category, isCumulative = false) {
+            const yearIndex = yearIndexes[category];
+            const currentYear = dynamicChartYears[yearIndex];
+            document.getElementById(`${category}-year`).textContent = currentYear;
+            document.getElementById(`${category}-title`).textContent = isCumulative ? `Top 10 (Evolución Acumulada)` : `Top 10 por Año`;
+            const categoryData = dataStore[category.toLowerCase()];
+            let chartData = [], chartLabels = [], originalLabels = [], backgroundColors = [], axisTitle = '';
+            
+            if (isCumulative) {
+                axisTitle = 'Puntuación Acumulada';
+                const cumulativeScores = {};
+                for (const item in categoryData) {
+                    cumulativeScores[item] = 0;
+                    for (let i = 0; i <= yearIndex; i++) {
+                        const rank = categoryData[item][i];
+                        cumulativeScores[item] += (rank >= 1 && rank <= 10) ? 11 - rank : 0;
+                    }
+                }
+                let sortedScores = Object.entries(cumulativeScores).map(([name, score]) => ({ name, score })).filter(item => item.score > 0).sort((a, b) => b.score - a.score);
+                const top10 = sortedScores.slice(0, 10);
+                chartLabels = top10.map(item => item.name);
+                chartData = top10.map(item => item.score);
+                originalLabels = chartLabels;
+                backgroundColors = top10.map(item => getColorForItem(item.name));
+            } else {
+                axisTitle = 'Puntuación';
+                let yearlyTop10 = [];
+                for (const item in categoryData) {
+                    const rank = categoryData[item][yearIndex];
+                    if (rank >= 1 && rank <= 10) { yearlyTop10.push({ name: item, rank: rank }); }
+                }
+                yearlyTop10.sort((a, b) => a.rank - b.rank);
+                chartLabels = yearlyTop10.map(item => `#${item.rank} ${item.name}`);
+                chartData = yearlyTop10.map(item => 11 - item.rank);
+                originalLabels = yearlyTop10.map(item => item.name);
+                backgroundColors = yearlyTop10.map(item => getColorForItem(item.name));
+            }
+            const chart = dynamicCharts[category];
+            chart.options.scales.x.title.text = axisTitle;
+            chart.data.labels = chartLabels;
+            chart.data.datasets[0] = { data: chartData, labelOriginals: originalLabels, backgroundColor: backgroundColors, borderColor: backgroundColors.map(c => c + 'cc'), borderWidth: 1 };
+            chart.update();
+        }
+        function updateYearlySummary(category, year) {
+            const summaryContainer = document.getElementById('yearly-summary-container');
+            const summaryData = communitySummaries[category];
+            if (summaryContainer && summaryData && summaryData[year]) {
+                summaryContainer.innerHTML = summaryData[year];
+                summaryContainer.classList.add('fade-in-element');
+                summaryContainer.addEventListener('animationend', () => {
+                    summaryContainer.classList.remove('fade-in-element');
+                });
+            } else {
+                summaryContainer.innerHTML = ""; // Clear if no data
+            }
+        }
+        function toggleAutoplay(category) {
+            const button = document.getElementById(`${category}-play`);
+            if (animation.interval && animation.category === category) {
+                clearInterval(animation.interval);
+                animation.interval = null; animation.category = null;
+                button.textContent = 'Animación Evolución';
+                updateDynamicChart(category, false);
+            } else {
+                if(animation.interval) {
+                    clearInterval(animation.interval);
+                    document.getElementById(`${animation.category}-play`).textContent = 'Animación Evolución';
+                    updateDynamicChart(animation.category, false);
+                }
+                animation.category = category;
+                button.textContent = 'Pausar Evolución';
+                yearIndexes[category] = -1;
+                const evolutionStep = () => {
+                    const newIndex = yearIndexes[category] + 1;
+                    if (newIndex >= dynamicChartYears.length) { toggleAutoplay(category); } 
+                    else { 
+                        yearIndexes[category] = newIndex; 
+                        updateDynamicChart(category, true); 
+                        updateYearlySummary(category, dynamicChartYears[newIndex]);
+                    }
+                };
+                evolutionStep();
+                animation.interval = setInterval(evolutionStep, 2000);
+            }
+        }
+        function changeYear(direction, category) {
+            if (animation.interval) toggleAutoplay(category);
+            const newIndex = (yearIndexes[category] + direction + dynamicChartYears.length) % dynamicChartYears.length;
+            yearIndexes[category] = newIndex;
+            updateDynamicChart(category, false);
+            updateYearlySummary(category, dynamicChartYears[newIndex]);
+        }
+        function openDynamicTab(evt, tabName) {
+            if (animation.interval) {
+                clearInterval(animation.interval);
+                document.getElementById(`${animation.category}-play`).textContent = 'Animación Evolución';
+                updateDynamicChart(animation.category, false);
+                animation.interval = null; animation.category = null;
+            }
+            document.querySelectorAll(".dynamic-tab-content").forEach(tab => tab.style.display = "none");
+            document.querySelectorAll(".sub-tab-button").forEach(btn => btn.classList.remove("active"));
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+            
+            activeDynamicTab = tabName;
+            const currentYear = dynamicChartYears[yearIndexes[tabName]];
+            updateYearlySummary(tabName, currentYear);
+        }
+    </script>
+</body>
+</html>
